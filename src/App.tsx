@@ -5,6 +5,7 @@ import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import PerfilPage from './pages/PerfilPage';
+import PdiPage from './pages/PdiPage';
 import ReunioesPage from './pages/ReunioesPage';
 import DesenvolvimentoPage from './pages/DesenvolvimentoPage';
 import OrganomaPage from './pages/OrganomaPage';
@@ -15,14 +16,14 @@ const IconHome = () => (
         <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
     </svg>
 );
-const IconUser = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-    </svg>
-);
 const IconCalendar = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
+);
+const IconTarget = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
     </svg>
 );
 const IconBook = () => (
@@ -64,7 +65,7 @@ function AppContent() {
         iniciais: string;
     } | null>(null);
 
-    const [telaAtiva, setTelaAtiva] = useState<'dashboard' | 'perfil' | 'reunioes' | 'desenvolvimento' | 'organograma'>('dashboard');
+    const [telaAtiva, setTelaAtiva] = useState<'dashboard' | 'perfil' | 'pdi' | 'reunioes' | 'desenvolvimento' | 'organograma'>('dashboard');
     const [sidebarAberta, setSidebarAberta] = useState(true);
 
     const handleLogin = (perfilRecebido?: string | { nome?: string; perfil?: string }) => {
@@ -104,7 +105,8 @@ function AppContent() {
     }
 
     const menuItems = [
-        { id: 'dashboard', label: 'PDIs & Metas', icon: <IconHome /> },
+        { id: 'dashboard', label: 'Dashboard', icon: <IconHome /> },
+        { id: 'pdi', label: 'PDI', icon: <IconTarget /> },
         { id: 'reunioes', label: 'Reuniões 1:1', icon: <IconCalendar /> },
         { id: 'desenvolvimento', label: 'Capacitação & Trilha', icon: <IconBook /> },
         { id: 'organograma', label: 'Organograma', icon: <IconOrganograma /> },
@@ -209,7 +211,7 @@ function AppContent() {
                 bottom: 0,
                 left: 0,
                 zIndex: sidebarAberta ? 50 : -1,
-                boxShadow: '4px 0 24px rgba(0, 0, 0, 0.05)',
+                boxShadow: '1px 0 3px rgba(0,0,0,0.03)',
                 transition: 'all 0.3s ease'
             }}>
                 <div>
@@ -219,8 +221,8 @@ function AppContent() {
                             width: 40, height: 40, borderRadius: 12,
                             background: `linear-gradient(135deg, ${theme.accent}, ${theme.accentLight})`,
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '1.25rem', fontWeight: 800, color: '#fff',
-                            boxShadow: `0 4px 12px ${theme.accent}66`
+                            fontSize: '1.25rem', fontWeight: 700, color: '#fff',
+                            boxShadow: `0 2px 8px ${theme.accent}33`
                         }}>
                             T
                         </div>
@@ -344,7 +346,7 @@ function AppContent() {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            boxShadow: `0 4px 12px ${theme.accent}4D`,
+                            boxShadow: `0 2px 8px ${theme.accent}33`,
                             transition: 'all 200ms ease-out'
                         }}
                     >
@@ -354,6 +356,7 @@ function AppContent() {
 
                 {telaAtiva === 'dashboard' && <DashboardPage nomeUsuario={usuarioLogado.nome} perfil={usuarioLogado.perfil} />}
                 {telaAtiva === 'perfil' && <PerfilPage nomeUsuario={usuarioLogado.nome} perfil={usuarioLogado.perfil} />}
+                {telaAtiva === 'pdi' && <PdiPage nomeUsuario={usuarioLogado.nome} perfil={usuarioLogado.perfil} />}
                 {telaAtiva === 'reunioes' && <ReunioesPage nomeUsuario={usuarioLogado.nome} perfil={usuarioLogado.perfil} />}
                 {telaAtiva === 'desenvolvimento' && <DesenvolvimentoPage nomeUsuario={usuarioLogado.nome} perfil={usuarioLogado.perfil} />}
                 {telaAtiva === 'organograma' && <OrganomaPage nomeUsuario={usuarioLogado.nome} perfil={usuarioLogado.perfil} />}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 
 // ─── ÍCONES ─────────────────────────────────────────────────────────────────
@@ -61,6 +61,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     const { theme } = useTheme();
     const [perfilSelecionado, setPerfilSelecionado] = useState<'COLABORADOR' | 'GESTOR' | 'RH'>('COLABORADOR');
     const [lembrarAcesso, setLembrarAcesso] = useState(true);
+    const [email, setEmail] = useState('ana.lima@bgp.com');
+    const [senha, setSenha] = useState('123456');
 
     // Mapeamento dos e-mails da BGP como na sua tela antiga
     const dadosPorPerfil = {
@@ -68,6 +70,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         GESTOR: { nome: 'Diego Rocha', email: 'diego.rocha@bgp.com' },
         RH: { nome: 'Gustavo Alves', email: 'gustavo.alves@bgp.com' },
     };
+
+    useEffect(() => {
+        setEmail(dadosPorPerfil[perfilSelecionado].email);
+    }, [perfilSelecionado]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -94,7 +100,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 width: '600px',
                 height: '600px',
                 borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, rgba(0, 0, 0, 0) 70%)',
+                background: `radial-gradient(circle, ${theme.accentLight}4D 0%, transparent 70%)`,
                 top: '-100px', left: '-100px',
                 pointerEvents: 'none'
             }} />
@@ -104,14 +110,14 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 width: '700px',
                 height: '700px',
                 borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(0, 0, 0, 0) 70%)',
+                background: `radial-gradient(circle, ${theme.gradientBannerEnd}40 0%, transparent 70%)`,
                 bottom: '-150px', right: '-100px',
                 pointerEvents: 'none'
             }} />
 
             <div style={{
                 position: 'absolute', inset: 0,
-                backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px)',
+                backgroundImage: `radial-gradient(${theme.cardBorder}66 1px, transparent 1px)`,
                 backgroundSize: '32px 32px',
                 pointerEvents: 'none', opacity: 0.6
             }} />
@@ -128,9 +134,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 backgroundColor: `${theme.background}CC`,
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
-                borderRadius: '24px',
+                borderRadius: '16px',
                 border: `1px solid ${theme.cardBorder}40`,
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(99, 102, 241, 0.1)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
                 overflow: 'hidden',
                 transition: 'all 0.3s ease'
             }}>
@@ -152,14 +158,14 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                                 width: 42, height: 42, borderRadius: 12,
                                 background: `linear-gradient(135deg, ${theme.accent}, ${theme.accentLight})`,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: '1.35rem', fontWeight: 800, color: '#fff',
-                                boxShadow: `0 8px 20px ${theme.accent}66`,
+                                fontSize: '1.25rem', fontWeight: 700, color: '#fff',
+                                boxShadow: `0 2px 8px ${theme.accent}33`,
                                 transition: 'all 0.3s ease'
                             }}>
                                 T
                             </div>
                             <div>
-                <span style={{ fontSize: '1.25rem', fontWeight: 800, color: theme.text, letterSpacing: '-0.3px', display: 'block', transition: 'color 0.3s ease' }}>
+                <span style={{ fontSize: '1.1rem', fontWeight: 700, color: theme.text, letterSpacing: '-0.3px', display: 'block', transition: 'color 0.3s ease' }}>
                   TalentSynk
                 </span>
                                 <span style={{ color: theme.textSecondary, fontSize: '0.72rem', transition: 'color 0.3s ease' }}>Plataforma de PDI</span>
@@ -167,7 +173,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                         </div>
 
                         <h1 style={{
-                            fontSize: '2rem', fontWeight: 800, color: theme.text,
+                            fontSize: '1.5rem', fontWeight: 700, color: theme.text,
                             lineHeight: 1.25, letterSpacing: '-0.6px', marginBottom: 12, transition: 'color 0.3s ease'
                         }}>
                             Transformando objetivos em <span style={{
@@ -219,7 +225,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                                 border: `1px solid ${theme.cardBorder}40`,
                                 display: 'flex', alignItems: 'center', gap: 14, transition: 'all 0.3s ease'
                             }}>
-                                <div style={{ width: 36, height: 36, borderRadius: '10px', backgroundColor: '#38BDF826', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#38BDF8', transition: 'all 0.3s ease' }}>
+                                <div style={{ width: 36, height: 36, borderRadius: '10px', backgroundColor: `${theme.accentLight}3D`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme.accent, transition: 'all 0.3s ease' }}>
                                     <IconMessageSquare />
                                 </div>
                                 <div>
@@ -323,8 +329,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                             </label>
                             <input
                                 type="email"
-                                readOnly
-                                value={dadosPorPerfil[perfilSelecionado].email}
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 style={{
                                     width: '100%', padding: '11px 14px', borderRadius: '10px',
                                     backgroundColor: theme.inputBackground, border: `1px solid ${theme.inputBorder}`,
@@ -339,8 +345,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                             </label>
                             <input
                                 type="password"
-                                readOnly
-                                value="123456"
+                                value={senha}
+                                onChange={(e) => setSenha(e.target.value)}
                                 style={{
                                     width: '100%', padding: '11px 14px', borderRadius: '10px',
                                     backgroundColor: theme.inputBackground, border: `1px solid ${theme.inputBorder}`,
@@ -373,7 +379,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                                 background: `linear-gradient(135deg, ${theme.accent}, ${theme.accentLight})`, color: '#FFFFFF',
                                 fontWeight: 600, fontSize: '0.925rem', cursor: 'pointer',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                                boxShadow: `0 4px 14px ${theme.accent}66`
+                                boxShadow: `0 2px 8px ${theme.accent}33`
                             }}
                         >
                             Entrar na Plataforma <IconArrowRight />

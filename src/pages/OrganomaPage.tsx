@@ -121,7 +121,7 @@ const abasData: Record<string, AbaData> = {
     }
 };
 
-export default function OrganomaPage({ nomeUsuario = 'Ana Lima', perfil = 'COLABORADOR' }: OrganomaPageProps) {
+export default function OrganomaPage({ perfil = 'COLABORADOR' }: OrganomaPageProps) {
     const { theme } = useTheme();
     const [abaSelecionada, setAbaSelecionada] = useState<keyof typeof abasData>('PS e Cloud');
     const [zoom, setZoom] = useState(100);

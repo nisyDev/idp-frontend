@@ -59,7 +59,7 @@ export default function PerfilPage({ nomeUsuario = 'Ana Lima', perfil = 'COLABOR
                         width: '64px',
                         height: '64px',
                         borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
+                        background: `linear-gradient(135deg, ${theme.accent}, ${theme.accentLight})`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',

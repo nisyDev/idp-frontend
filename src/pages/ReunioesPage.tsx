@@ -27,7 +27,12 @@ interface Meeting {
     pauta: string;
 }
 
-export default function ReunioesPage() {
+interface ReunioesPageProps {
+    nomeUsuario?: string;
+    perfil?: string;
+}
+
+export default function ReunioesPage({ nomeUsuario = 'Ana Lima' }: ReunioesPageProps) {
     const { theme } = useTheme();
     const [reunioes] = useState<Meeting[]>([
         {
@@ -67,7 +72,7 @@ export default function ReunioesPage() {
                         margin: '0 0 4px 0',
                         transition: 'color 0.3s ease'
                     }}>
-                        Reuniões 1:1 — Ana Lima
+                        Reuniões 1:1 — {nomeUsuario}
                     </h1>
                     <p style={{ margin: 0, color: theme.textSecondary, fontSize: '0.875rem', transition: 'color 0.3s ease' }}>
                         Histórico e agendamentos de conversas individuais.
@@ -87,7 +92,7 @@ export default function ReunioesPage() {
                         alignItems: 'center',
                         gap: '8px',
                         cursor: 'pointer',
-                        boxShadow: `0 2px 8px ${theme.mode === 'dark' ? 'rgba(96, 165, 250, 0.25)' : 'rgba(99, 102, 241, 0.25)'}`,
+                        boxShadow: `0 2px 8px ${theme.accent}40`,
                         transition: 'all 0.2s ease'
                     }}
                 >
@@ -119,7 +124,7 @@ export default function ReunioesPage() {
                                 width: '40px',
                                 height: '40px',
                                 borderRadius: '10px',
-                                backgroundColor: isAgendada ? theme.mode === 'dark' ? '#3730A3' : '#EEF2FF' : theme.mode === 'dark' ? '#1E293B' : '#F1F5F9',
+                                backgroundColor: isAgendada ? `${theme.accentLight}4D` : theme.backgroundSecondary,
                                 color: isAgendada ? theme.accent : theme.textTertiary,
                                 display: 'flex',
                                 alignItems: 'center',
@@ -139,7 +144,7 @@ export default function ReunioesPage() {
                                             fontWeight: 600,
                                             padding: '3px 10px',
                                             borderRadius: '20px',
-                                            backgroundColor: isAgendada ? theme.mode === 'dark' ? '#3730A3' : '#EEF2FF' : theme.mode === 'dark' ? '#1E293B' : '#F1F5F9',
+                                            backgroundColor: isAgendada ? `${theme.accentLight}4D` : theme.backgroundSecondary,
                                             color: isAgendada ? theme.accent : theme.textSecondary,
                                             transition: 'all 0.3s ease'
                                         }}>

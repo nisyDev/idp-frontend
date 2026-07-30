@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import type { CSSProperties, ElementType, KeyboardEvent } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface EditableFieldProps {
     value: string;
     onChange: (value: string) => void;
     variant?: 'h1' | 'h2' | 'h3' | 'p' | 'span';
-    style?: React.CSSProperties;
+    style?: CSSProperties;
     multiline?: boolean;
 }
 
@@ -25,7 +26,7 @@ export default function EditableField({
         setIsEditing(false);
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Enter' && !multiline) {
             handleSave();
         }
@@ -35,13 +36,13 @@ export default function EditableField({
         }
     };
 
-    const commonStyles: React.CSSProperties = {
+    const commonStyles: CSSProperties = {
         ...style,
         cursor: isEditing ? 'text' : 'pointer',
         transition: 'background-color 0.2s ease, box-shadow 0.2s ease',
         padding: isEditing ? '8px 12px' : '2px 4px',
         borderRadius: isEditing ? '6px' : '2px',
-        backgroundColor: isEditing ? theme.mode === 'dark' ? '#1E293B' : '#F9FAFB' : 'transparent',
+        backgroundColor: isEditing ? theme.inputBackground : 'transparent',
         border: isEditing ? `1px solid ${theme.inputBorder}` : '1px solid transparent',
     };
 
@@ -62,7 +63,7 @@ export default function EditableField({
                     minHeight: '80px',
                     resize: 'vertical',
                     outline: 'none',
-                } as React.CSSProperties}
+                } as CSSProperties}
                 autoFocus
             />
         ) : (
@@ -82,13 +83,13 @@ export default function EditableField({
                     width: '100%',
                     border: `1px solid ${theme.inputBorder}`,
                     outline: 'none',
-                } as React.CSSProperties}
+                } as CSSProperties}
                 autoFocus
             />
         );
     }
 
-    const Tag = variant as keyof JSX.IntrinsicElements;
+    const Tag = variant as ElementType;
     
     return (
         <Tag
@@ -99,7 +100,7 @@ export default function EditableField({
             style={{
                 ...commonStyles,
                 userSelect: 'none',
-            } as React.CSSProperties}
+            } as CSSProperties}
             title="Clique para editar"
         >
             {value}

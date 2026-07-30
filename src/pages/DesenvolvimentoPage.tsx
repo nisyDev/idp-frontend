@@ -153,8 +153,8 @@ export default function DesenvolvimentoPage({
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                                         <span style={{
                                             fontSize: '0.72rem', fontWeight: 600,
-                                            color: item.categoria === 'Hard Skill' ? theme.accent : '#7C3AED',
-                                            backgroundColor: item.categoria === 'Hard Skill' ? `${theme.accent}1A` : '#F5F3FF',
+                                            color: theme.accent,
+                                            backgroundColor: item.categoria === 'Hard Skill' ? `${theme.accent}1A` : `${theme.accentLight}4D`,
                                             padding: '2px 8px', borderRadius: 6, transition: 'all 0.3s ease'
                                         }}>
                                             {item.categoria}

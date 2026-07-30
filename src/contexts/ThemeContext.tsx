@@ -1,4 +1,5 @@
-import React, { createContext, useState, ReactNode } from 'react';
+import React, { createContext, useState } from 'react';
+import type { ReactNode } from 'react';
 
 export type ThemeMode = 'light' | 'dark';
 
@@ -46,21 +47,21 @@ export interface ThemeColors {
 
 export const lightTheme: ThemeColors = {
   background: '#FFFBF0',
-  backgroundSecondary: '#F5F3ED',
+  backgroundSecondary: '#EAF7FF',
   
   sidebarBackground: '#E0F2FE',
-  sidebarText: '#1F2937',
-  sidebarItemHover: '#BAE6FD',
+  sidebarText: '#062544',
+  sidebarItemHover: '#C7E5FA',
   
-  text: '#1F2937',
-  textSecondary: '#6B7280',
-  textTertiary: '#9CA3AF',
+  text: '#062544',
+  textSecondary: '#31506F',
+  textTertiary: '#466683',
   
   cardBackground: '#FFFFFF',
-  cardBorder: '#E5E7EB',
+  cardBorder: '#BFDEF3',
   
-  accent: '#2563EB',
-  accentLight: '#93C5FD',
+  accent: '#0F83C8',
+  accentLight: '#B8DDF5',
   
   success: '#10B981',
   warning: '#F59E0B',
@@ -69,12 +70,12 @@ export const lightTheme: ThemeColors = {
   gradientBannerStart: '#60A5FA',
   gradientBannerEnd: '#F5D547',
   
-  buttonBackground: '#F3F4F6',
-  buttonText: '#1F2937',
-  buttonHover: '#E5E7EB',
+  buttonBackground: '#FFFFFF',
+  buttonText: '#062544',
+  buttonHover: '#EAF7FF',
   
-  inputBackground: '#F9FAFB',
-  inputBorder: '#D1D5DB',
+  inputBackground: '#FFFFFF',
+  inputBorder: '#BFDEF3',
 };
 
 export const darkTheme: ThemeColors = {
@@ -119,7 +120,7 @@ interface ThemeContextType {
 export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [mode, setMode] = useState<ThemeMode>('dark');
+  const [mode, setMode] = useState<ThemeMode>('light');
   
   const theme = mode === 'light' ? lightTheme : darkTheme;
   
