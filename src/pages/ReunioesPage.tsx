@@ -41,7 +41,8 @@ interface ReunioesPageProps {
     perfil?: string;
 }
 
-export default function ReunioesPage({ nomeUsuario = 'Ana Lima' }: ReunioesPageProps) {
+export default function ReunioesPage({ nomeUsuario = 'Ana Lima', perfil = 'COLABORADOR' }: ReunioesPageProps) {
+    const canCreate = perfil && perfil.toString().toUpperCase().includes('GESTOR');
     const { theme } = useTheme();
     const [reunioes, setReunioes] = useState<Meeting[]>([
         {
@@ -121,26 +122,32 @@ export default function ReunioesPage({ nomeUsuario = 'Ana Lima' }: ReunioesPageP
                     </p>
                 </div>
 
-                <button
-                    onClick={abrirModal}
-                    style={{
-                        backgroundColor: theme.accent,
-                        color: '#FFFFFF',
-                        border: 'none',
-                        padding: '10px 18px',
-                        borderRadius: '10px',
-                        fontWeight: 600,
-                        fontSize: '0.875rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        cursor: 'pointer',
-                        boxShadow: `0 2px 8px ${theme.accent}40`,
-                        transition: 'all 0.2s ease'
-                    }}
-                >
-                    <IconPlus /> Agendar 1:1
-                </button>
+                {canCreate ? (
+                    <button
+                        onClick={abrirModal}
+                        style={{
+                            backgroundColor: theme.accent,
+                            color: '#FFFFFF',
+                            border: 'none',
+                            padding: '10px 18px',
+                            borderRadius: '10px',
+                            fontWeight: 600,
+                            fontSize: '0.875rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            cursor: 'pointer',
+                            boxShadow: `0 2px 8px ${theme.accent}40`,
+                            transition: 'all 0.2s ease'
+                        }}
+                    >
+                        <IconPlus /> Agendar 1:1
+                    </button>
+                ) : (
+                    <div style={{ color: theme.textSecondary, fontSize: '0.9rem', fontWeight: 600 }}>
+                        Apenas gestores podem agendar 1:1
+                    </div>
+                )}
             </div>
 
             {/* ── LISTA DE REUNIÕES ────────────────────────────────────────────── */}

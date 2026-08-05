@@ -98,10 +98,10 @@ export default function SugestoesPage({ nomeUsuario = 'Ana Souza', perfil = 'COL
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                             <label style={{ fontSize: '0.9rem', color: theme.textSecondary }}>Título</label>
-                            <input value={form.titulo} onChange={(e)=>setForm(f=>({ ...f, titulo: e.target.value }))} style={{ padding: '10px 12px', borderRadius: 8, border: `1px solid ${theme.inputBorder}`, backgroundColor: theme.inputBackground }} />
+                            <input value={form.titulo} onChange={(e)=>setForm(f=>({ ...f, titulo: e.target.value }))} style={{ padding: '10px 12px', borderRadius: 8, border: `1px solid ${theme.cardBorder}`, backgroundColor: theme.cardBackground, color: theme.text }} />
 
                             <label style={{ fontSize: '0.9rem', color: theme.textSecondary }}>Categoria</label>
-                            <select value={form.categoria} onChange={(e)=>setForm(f=>({ ...f, categoria: e.target.value }))} style={{ padding: '10px 12px', borderRadius: 8, border: `1px solid ${theme.inputBorder}`, backgroundColor: theme.inputBackground }}>
+                            <select value={form.categoria} onChange={(e)=>setForm(f=>({ ...f, categoria: e.target.value }))} style={{ padding: '10px 12px', borderRadius: 8, border: `1px solid ${theme.cardBorder}`, backgroundColor: theme.cardBackground, color: theme.text }}>
                                 <option>Processo</option>
                                 <option>Cultura</option>
                                 <option>Ferramenta</option>
@@ -109,7 +109,7 @@ export default function SugestoesPage({ nomeUsuario = 'Ana Souza', perfil = 'COL
                             </select>
 
                             <label style={{ fontSize: '0.9rem', color: theme.textSecondary }}>Mensagem</label>
-                            <textarea value={form.mensagem} onChange={(e)=>setForm(f=>({ ...f, mensagem: e.target.value }))} style={{ minHeight: 120, padding: '10px 12px', borderRadius: 8, border: `1px solid ${theme.inputBorder}`, backgroundColor: theme.inputBackground }} />
+                            <textarea value={form.mensagem} onChange={(e)=>setForm(f=>({ ...f, mensagem: e.target.value }))} style={{ minHeight: 120, padding: '10px 12px', borderRadius: 8, border: `1px solid ${theme.cardBorder}`, backgroundColor: theme.cardBackground, color: theme.text }} />
 
                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 8 }}>
                                 <button onClick={fecharModal} style={{ padding: '10px 14px', borderRadius: 8, backgroundColor: theme.cardBackground, border: `1px solid ${theme.cardBorder}` }}>Cancelar</button>
