@@ -167,6 +167,7 @@ export default function OrganomaPage({ perfil = 'COLABORADOR' }: OrganomaPagePro
         setIsDragging(false);
     };
 
+
     const handleUpdateDepartamento = (deptId: string, newName: string) => {
         if (!canEdit) return;
         setDepartamentos(prev =>
@@ -193,7 +194,7 @@ export default function OrganomaPage({ perfil = 'COLABORADOR' }: OrganomaPagePro
                     Organograma
                 </h1>
                 <p style={{ margin: 0, color: theme.textSecondary, fontSize: '0.875rem', transition: 'color 0.3s ease' }}>
-                    Estrutura por área. Arraste para mover, use a roda do mouse ou os botões para dar zoom. {canEdit ? 'Você pode editar.' : 'Apenas RH e Gestor podem editar.'}
+                    Estrutura por área. Arraste para mover. Use os botões para dar zoom. {canEdit ? 'Você pode editar.' : 'Apenas RH e Gestor podem editar.'}
                 </p>
             </div>
 
