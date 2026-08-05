@@ -18,6 +18,14 @@ const IconPlus = () => (
     </svg>
 );
 
+const IconTeams = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2" />
+        <path d="M8 21v-4" />
+        <path d="M16 21v-4" />
+    </svg>
+);
+
 interface Meeting {
     id: string;
     titulo: string;
@@ -25,6 +33,7 @@ interface Meeting {
     status: 'Agendada' | 'Realizada';
     participante: string;
     pauta: string;
+    teamsLink?: string;
 }
 
 interface ReunioesPageProps {
@@ -34,7 +43,7 @@ interface ReunioesPageProps {
 
 export default function ReunioesPage({ nomeUsuario = 'Ana Lima' }: ReunioesPageProps) {
     const { theme } = useTheme();
-    const [reunioes] = useState<Meeting[]>([
+    const [reunioes, setReunioes] = useState<Meeting[]>([
         {
             id: '1',
             titulo: '1:1 de Alinhamento Trimestral de Carreira',
@@ -42,6 +51,7 @@ export default function ReunioesPage({ nomeUsuario = 'Ana Lima' }: ReunioesPageP
             status: 'Agendada',
             participante: 'Diego Rocha (Gestor)',
             pauta: 'Revisão das metas de transição para Tech Lead e feedbacks do último sprint.',
+            teamsLink: 'https://teams.microsoft.com/simulacao/1'
         },
         {
             id: '2',
@@ -52,6 +62,38 @@ export default function ReunioesPage({ nomeUsuario = 'Ana Lima' }: ReunioesPageP
             pauta: 'Definição dos cursos de capacitação e alinhamento do PDI.',
         },
     ]);
+
+    const [showModal, setShowModal] = useState(false);
+    const [form, setForm] = useState({
+        tipo: '1:1',
+        participante: 'Diego Rocha (Gestor)',
+        data: '',
+        hora: '',
+        pauta: '',
+        criarLinkTeams: true,
+    });
+
+    const abrirModal = () => setShowModal(true);
+    const fecharModal = () => {
+        setShowModal(false);
+        setForm({ tipo: '1:1', participante: 'Diego Rocha (Gestor)', data: '', hora: '', pauta: '', criarLinkTeams: true });
+    };
+
+    const handleAgendar = () => {
+        const id = String(Date.now());
+        const dataHora = form.data && form.hora ? `${form.data} às ${form.hora}` : 'A definir';
+        const nova: Meeting = {
+            id,
+            titulo: `${form.tipo} — ${form.participante}`,
+            dataHora,
+            status: 'Agendada',
+            participante: form.participante,
+            pauta: form.pauta,
+            teamsLink: form.criarLinkTeams ? `https://teams.microsoft.com/simulacao/${id}` : undefined,
+        };
+        setReunioes(prev => [nova, ...prev]);
+        fecharModal();
+    };
 
     return (
         <div style={{ maxWidth: '960px', margin: '0 auto', paddingBottom: '40px', fontFamily: "'Inter', sans-serif" }}>
@@ -80,6 +122,7 @@ export default function ReunioesPage({ nomeUsuario = 'Ana Lima' }: ReunioesPageP
                 </div>
 
                 <button
+                    onClick={abrirModal}
                     style={{
                         backgroundColor: theme.accent,
                         color: '#FFFFFF',
@@ -155,9 +198,14 @@ export default function ReunioesPage({ nomeUsuario = 'Ana Lima' }: ReunioesPageP
                                         </span>
                                     </div>
 
-                                    <span style={{ fontSize: '0.825rem', color: theme.textSecondary, fontWeight: 500, transition: 'color 0.3s ease' }}>
-                                        {item.participante}
-                                    </span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        <span style={{ fontSize: '0.825rem', color: theme.textSecondary, fontWeight: 500, transition: 'color 0.3s ease' }}>{item.participante}</span>
+                                        {item.teamsLink && (
+                                            <a href={item.teamsLink} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginLeft: 8, color: theme.accent, textDecoration: 'none', fontWeight: 600 }}>
+                                                <IconTeams /> Link Teams
+                                            </a>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <h3 style={{
@@ -179,6 +227,70 @@ export default function ReunioesPage({ nomeUsuario = 'Ana Lima' }: ReunioesPageP
                     );
                 })}
             </div>
+
+            {showModal && (
+                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60 }}>
+                    <div style={{ width: 680, borderRadius: 12, backgroundColor: theme.cardBackground, padding: 24, border: `1px solid ${theme.cardBorder}` }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                            <h3 style={{ margin: 0, color: theme.text }}>Nova reunião</h3>
+                            <button onClick={fecharModal} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18 }}>×</button>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                            <div style={{ gridColumn: '1 / -1' }}>
+                                <label style={{ fontSize: '0.9rem', color: theme.textSecondary }}>Tipo</label>
+                                <select value={form.tipo} onChange={(e) => setForm(f => ({ ...f, tipo: e.target.value }))} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${theme.inputBorder}`, backgroundColor: theme.inputBackground }}>
+                                    <option>1:1</option>
+                                    <option>Reunião</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label style={{ fontSize: '0.9rem', color: theme.textSecondary }}>Com gestor(a)</label>
+                                <select value={form.participante} onChange={(e) => setForm(f => ({ ...f, participante: e.target.value }))} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${theme.inputBorder}`, backgroundColor: theme.inputBackground }}>
+                                    <option>Diego Rocha (Gestor)</option>
+                                    <option>Bruno Lima</option>
+                                    <option>Gustavo Alves</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label style={{ fontSize: '0.9rem', color: theme.textSecondary }}>Data</label>
+                                <input value={form.data} onChange={(e) => setForm(f => ({ ...f, data: e.target.value }))} placeholder="dd/mm/aaaa" style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${theme.inputBorder}`, backgroundColor: theme.inputBackground }} />
+                            </div>
+
+                            <div>
+                                <label style={{ fontSize: '0.9rem', color: theme.textSecondary }}>Hora</label>
+                                <input value={form.hora} onChange={(e) => setForm(f => ({ ...f, hora: e.target.value }))} placeholder="14:00" style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${theme.inputBorder}`, backgroundColor: theme.inputBackground }} />
+                            </div>
+
+                            <div style={{ gridColumn: '1 / -1' }}>
+                                <label style={{ fontSize: '0.9rem', color: theme.textSecondary }}>Pauta</label>
+                                <textarea value={form.pauta} onChange={(e) => setForm(f => ({ ...f, pauta: e.target.value }))} style={{ width: '100%', minHeight: 100, padding: '10px 12px', borderRadius: 8, border: `1px solid ${theme.inputBorder}`, backgroundColor: theme.inputBackground }} />
+                            </div>
+                        </div>
+
+                        <div style={{ marginTop: 12, borderRadius: 8, border: `1px solid ${theme.cardBorder}`, backgroundColor: theme.backgroundSecondary, padding: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <div style={{ flexShrink: 0 }}>
+                                <IconTeams />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ fontWeight: 700, color: theme.text }}>Microsoft Teams</div>
+                                <div style={{ color: theme.textSecondary, fontSize: '0.9rem' }}>Um link de reunião será criado automaticamente.</div>
+                            </div>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <input type="checkbox" checked={form.criarLinkTeams} onChange={(e) => setForm(f => ({ ...f, criarLinkTeams: e.target.checked }))} />
+                                <span style={{ color: theme.textSecondary }}>Criar link</span>
+                            </label>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 16 }}>
+                            <button onClick={fecharModal} style={{ padding: '10px 14px', borderRadius: 8, backgroundColor: theme.cardBackground, border: `1px solid ${theme.cardBorder}` }}>Cancelar</button>
+                            <button onClick={handleAgendar} style={{ padding: '10px 14px', borderRadius: 8, backgroundColor: theme.accent, color: '#fff', border: 'none' }}>Agendar</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </div>
     );
