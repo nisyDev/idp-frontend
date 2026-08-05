@@ -9,6 +9,7 @@ import PdiPage from './pages/PdiPage';
 import ReunioesPage from './pages/ReunioesPage';
 import DesenvolvimentoPage from './pages/DesenvolvimentoPage';
 import OrganomaPage from './pages/OrganomaPage';
+import SugestoesPage from './pages/SugestoesPage';
 
 // ─── Ícones (Lucide Style) ───────────────────────────────────────────────────
 const IconHome = () => (
@@ -105,7 +106,7 @@ function AppContent() {
     }
 
     const menuItems = [
-        { id: 'dashboard', label: 'Dashboard', icon: <IconHome /> },
+        { id: 'dashboard', label: 'Início', icon: <IconHome /> },
         { id: 'pdi', label: 'PDI', icon: <IconTarget /> },
         { id: 'reunioes', label: 'Reuniões 1:1', icon: <IconCalendar /> },
         { id: 'desenvolvimento', label: 'Capacitação & Trilha', icon: <IconBook /> },
@@ -360,6 +361,7 @@ function AppContent() {
                 {telaAtiva === 'reunioes' && <ReunioesPage nomeUsuario={usuarioLogado.nome} perfil={usuarioLogado.perfil} />}
                 {telaAtiva === 'desenvolvimento' && <DesenvolvimentoPage nomeUsuario={usuarioLogado.nome} perfil={usuarioLogado.perfil} />}
                 {telaAtiva === 'organograma' && <OrganomaPage nomeUsuario={usuarioLogado.nome} perfil={usuarioLogado.perfil} />}
+                {telaAtiva === 'sugestoes' && <SugestoesPage nomeUsuario={usuarioLogado.nome} perfil={usuarioLogado.perfil} /> }
             </main>
 
         </div>
