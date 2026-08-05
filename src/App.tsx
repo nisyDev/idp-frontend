@@ -306,7 +306,7 @@ function AppContent() {
                                 backgroundColor: theme.cardBackground, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
                             }}
                         >
-                            <span style={{ fontSize: 18 }}>{mode === 'dark' ? '☀️' : '🌙'}</span>
+                            {mode === 'dark' ? <IconSun /> : <IconMoon />}
                         </button>
                     </div>
 
