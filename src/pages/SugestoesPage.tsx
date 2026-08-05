@@ -12,7 +12,7 @@ interface Sugestao {
     status: string;
 }
 
-export default function SugestoesPage({ nomeUsuario = 'Ana Souza', perfil = 'COLABORADOR' }: { nomeUsuario?: string; perfil?: string }) {
+export default function SugestoesPage({ nomeUsuario = 'Ana Souza' }: { nomeUsuario?: string }) {
     const { theme } = useTheme();
     const [sugestoes, setSugestoes] = useState<Sugestao[]>([
         { id: 's1', titulo: 'Trilhas de aprendizado por senioridade', categoria: 'Processo', mensagem: 'Criar trilhas claras de jr→pleno→sr por área.', autor: 'Ana Souza', data: '22/05/2026', votos: 2, status: 'Em análise' },
