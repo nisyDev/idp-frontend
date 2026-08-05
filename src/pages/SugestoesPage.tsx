@@ -72,7 +72,7 @@ export default function SugestoesPage({ nomeUsuario = 'Ana Souza', perfil = 'COL
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                                 <div style={{ fontSize: '1rem', fontWeight: 700, color: theme.text }}>{s.titulo}</div>
                                 <span style={{ fontSize: '0.72rem', color: theme.textSecondary, padding: '4px 8px', borderRadius: 999, border: `1px solid ${theme.cardBorder}` }}>{s.categoria}</span>
-                                <span style={{ fontSize: '0.72rem', color: theme.textSecondary, padding: '4px 8px', borderRadius: 999, backgroundColor: `${theme.accent}1A`, color: theme.accent }}>{s.status}</span>
+                                                                <span style={{ fontSize: '0.72rem', padding: '4px 8px', borderRadius: 999, backgroundColor: `${theme.accent}1A`, color: theme.accent }}>{s.status}</span>
                             </div>
                             <div style={{ color: theme.textSecondary, marginBottom: 8 }}>{s.mensagem}</div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
