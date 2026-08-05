@@ -58,6 +58,14 @@ const IconMoon = () => (
     </svg>
 );
 
+const IconLightbulb = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 18h6"/>
+        <path d="M10 22h4"/>
+        <path d="M14 10.5A4 4 0 1 0 10 10.5c0 2 1 3 1 4h2c0-1 1-2 1-4z"/>
+    </svg>
+);
+
 function AppContent() {
     const { theme, mode, toggleTheme } = useTheme();
     const [usuarioLogado, setUsuarioLogado] = useState<{
@@ -111,6 +119,7 @@ function AppContent() {
         { id: 'reunioes', label: 'Reuniões 1:1', icon: <IconCalendar /> },
         { id: 'desenvolvimento', label: 'Capacitação & Trilha', icon: <IconBook /> },
         { id: 'organograma', label: 'Organograma', icon: <IconOrganograma /> },
+        { id: 'sugestoes', label: 'Sugestões', icon: <IconLightbulb /> },
     ] as const;
 
     return (
