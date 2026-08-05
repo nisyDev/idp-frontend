@@ -379,8 +379,8 @@ export default function PdiPage({ nomeUsuario = 'Ana Souza' }: PdiPageProps) {
                                             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
                                                 {meta.competencias.map((competencia) => (
                                                     <span key={competencia} style={{
-                                                        backgroundColor: '#FEF3C7',
-                                                        color: theme.text,
+                                                        backgroundColor: `${theme.accent}1A`,
+                                                        color: theme.accent,
                                                         borderRadius: 999,
                                                         padding: '6px 12px',
                                                         fontSize: '0.82rem',
