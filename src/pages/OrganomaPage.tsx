@@ -289,7 +289,8 @@ export default function OrganomaPage({ perfil = 'COLABORADOR' }: OrganomaPagePro
                     display: 'flex',
                     alignItems: 'center',
                     gap: '16px',
-                    pointerEvents: 'auto'
+                    pointerEvents: 'auto',
+                    zIndex: 80
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <button
