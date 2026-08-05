@@ -303,7 +303,7 @@ function AppContent() {
                             title={mode === 'dark' ? 'Alternar para modo claro' : 'Alternar para modo escuro'}
                             style={{
                                 width: 36, height: 36, borderRadius: 10, padding: 0, border: `1px solid ${theme.cardBorder}`,
-                                backgroundColor: theme.cardBackground, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+                                backgroundColor: theme.cardBackground, color: theme.text, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
                             }}
                         >
                             {mode === 'dark' ? <IconSun /> : <IconMoon />}
