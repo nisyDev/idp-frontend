@@ -270,58 +270,58 @@ function AppContent() {
                     flexDirection: 'column',
                     gap: 12
                 }}>
-                    <button
-                        onClick={() => setTelaAtiva('perfil')}
-                        style={{
-                            display: 'flex', alignItems: 'center', gap: 12, padding: '0 8px',
-                            backgroundColor: 'transparent', border: 'none', cursor: 'pointer',
-                            transition: 'all 150ms ease-in-out'
-                        }}
-                    >
-                        <div style={{
-                            width: 38, height: 38, borderRadius: '50%',
-                            backgroundColor: theme.accentLight,
-                            border: `1.5px solid ${theme.accent}`,
-                            color: theme.accent, fontWeight: 700, fontSize: '0.85rem',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center'
-                        }}>
-                            {usuarioLogado.iniciais}
-                        </div>
-                        <div style={{ flex: 1, overflow: 'hidden', textAlign: 'left' }}>
-                            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.sidebarText, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {usuarioLogado.nome}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '0 4px' }}>
+                        <button
+                            onClick={() => setTelaAtiva('perfil')}
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: 12, padding: '0 8px',
+                                backgroundColor: 'transparent', border: 'none', cursor: 'pointer',
+                                transition: 'all 150ms ease-in-out', flex: 1, textAlign: 'left'
+                            }}
+                        >
+                            <div style={{
+                                width: 38, height: 38, borderRadius: '50%',
+                                backgroundColor: theme.accentLight,
+                                border: `1.5px solid ${theme.accent}`,
+                                color: theme.accent, fontWeight: 700, fontSize: '0.85rem',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            }}>
+                                {usuarioLogado.iniciais}
                             </div>
-                            <div style={{ fontSize: '0.72rem', color: theme.accent, fontWeight: 600 }}>
-                                {usuarioLogado.perfil}
+                            <div style={{ flex: 1, overflow: 'hidden' }}>
+                                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.sidebarText, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {usuarioLogado.nome}
+                                </div>
+                                <div style={{ fontSize: '0.72rem', color: theme.accent, fontWeight: 600 }}>
+                                    {usuarioLogado.perfil}
+                                </div>
                             </div>
-                        </div>
-                    </button>
+                        </button>
 
-                    <button
-                        onClick={toggleTheme}
-                        style={{
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                            width: '100%', padding: '10px 12px', borderRadius: 10,
-                            backgroundColor: theme.cardBackground, border: `1px solid ${theme.cardBorder}`,
-                            color: theme.text, fontSize: '0.825rem', fontWeight: 600,
-                            cursor: 'pointer', transition: 'all 150ms'
-                        }}
-                    >
-                        {mode === 'dark' ? <IconSun /> : <IconMoon />}
-                        {mode === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
-                    </button>
+                        <button
+                            onClick={toggleTheme}
+                            title={mode === 'dark' ? 'Alternar para modo claro' : 'Alternar para modo escuro'}
+                            style={{
+                                width: 36, height: 36, borderRadius: 10, padding: 0, border: `1px solid ${theme.cardBorder}`,
+                                backgroundColor: theme.cardBackground, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+                            }}
+                        >
+                            <span style={{ fontSize: 18 }}>{mode === 'dark' ? '☀️' : '🌙'}</span>
+                        </button>
+                    </div>
 
                     <button
                         onClick={handleLogout}
                         style={{
                             display: 'flex', alignItems: 'center', gap: 10,
-                            width: '100%', padding: '10px 12px', borderRadius: 10,
+                            padding: '10px 16px', borderRadius: 10,
                             backgroundColor: theme.cardBackground, border: `1px solid ${theme.cardBorder}`,
                             color: theme.error, fontSize: '0.825rem', fontWeight: 600,
-                            cursor: 'pointer', transition: 'all 150ms'
+                            cursor: 'pointer', transition: 'all 150ms', alignSelf: 'center'
                         }}
                     >
-                        <IconLogOut /> Sair / Trocar Conta
+                        <IconLogOut />
+                        <span style={{ marginLeft: 6 }}>Sair / Trocar Conta</span>
                     </button>
                 </div>
             </aside>
