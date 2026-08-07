@@ -1,75 +1,133 @@
-# React + TypeScript + Vite
+# TalentSynk Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interface web da plataforma **TalentSynk**, desenvolvida em React.
 
-Currently, two official plugins are available:
+Este repositório contém exclusivamente a aplicação Front-end responsável pela experiência do usuário da plataforma.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+> Para conhecer a visão de negócio, arquitetura da solução, modelagem de dados e demais documentações, consulte o repositório **TalentSynk-Docs**.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Objetivo
 
-## Expanding the ESLint configuration
+O objetivo deste projeto é fornecer uma interface moderna, intuitiva e responsiva para acompanhamento do Plano de Desenvolvimento Individual (PDI), permitindo que colaboradores, gestores e RH acompanhem a evolução profissional de forma contínua.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Tecnologias
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Atualmente o projeto utiliza:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- React
+- TypeScript
+- Vite
+- React Router *(quando aplicável)*
+- Tailwind CSS *(quando aplicável)*
 
+> A stack poderá evoluir conforme novas necessidades surgirem durante o desenvolvimento.
+
+---
+
+## Estrutura do Projeto
+
+```text
+src/
+├── 📁 assets/          # Recursos estáticos (imagens, fontes, estilos globais)
+├── 📁 components/      # Componentes reutilizáveis (botões, cards, modais)
+├── 📁 hooks/           # Hooks customizados do React
+├── 📁 layouts/          # Layouts estruturais das páginas
+├── 📁 pages/            # Páginas e views da aplicação
+├── 📁 routes/           # Configuração de rotas da aplicação
+├── 📁 services/         # Integração e comunicação com APIs externas
+├── 📁 types/            # Definições de tipos e interfaces (TypeScript)
+├── 📁 utils/            # Funções utilitárias e helpers gerais
+└── 📄 App.tsx           # Ponto de entrada e componente raiz
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+A organização da estrutura poderá evoluir conforme o crescimento da aplicação.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+---
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Como executar
+
+### Pré-requisitos
+
+- Node.js
+- npm
+
+### Instalação
+
+```bash
+git clone <url-do-repositorio>
+
+cd talentsynk-frontend
+
+npm install
+```
+
+### Executando a aplicação
+
+```bash
+npm run dev
+```
+
+Por padrão, a aplicação será disponibilizada em:
 
 ```
+http://localhost:5173
+```
+
+---
+
+## Configuração
+
+A comunicação com o Back-end é realizada através de variáveis de ambiente.
+
+Exemplo:
+
+```env
+VITE_API_URL=http://localhost:8080
+```
+
+---
+
+## Integração
+
+Esta aplicação consome os serviços disponibilizados pelo projeto **TalentSynk Backend**.
+
+A documentação das APIs encontra-se no repositório de documentação do projeto.
+
+---
+
+## Status
+
+🚧 Projeto em desenvolvimento.
+
+As funcionalidades estão sendo implementadas de forma incremental conforme a evolução da arquitetura da plataforma.
+
+---
+
+## Documentação
+
+A documentação completa do projeto encontra-se no repositório **TalentSynk-Docs**, incluindo:
+
+- Visão de Negócio
+- Arquitetura
+- Modelagem de Dados
+- Documentação da API
+- Roadmap
+- Decisões Arquiteturais
+- Estado Atual do Projeto
+
+---
+
+## Repositórios Relacionados
+
+- TalentSynk-Docs
+- TalentSynk-Backend
+
+---
+
+## Licença
+
+Projeto desenvolvido para fins de estudo, evolução técnica e demonstração de arquitetura e desenvolvimento de software.
