@@ -1,0 +1,198 @@
+.pdi-form-dialog {
+    box-sizing: border-box;
+    width: min(640px, calc(100% - 32px));
+    max-width: calc(100% - 32px);
+    max-height: 90dvh;
+    margin: auto;
+    padding: 0;
+    overflow-y: auto;
+    border: 1px solid var(--pdi-real-border);
+    border-radius: 14px;
+    background: var(--pdi-real-background);
+    color: var(--pdi-real-text);
+    font-family: 'Inter', sans-serif;
+}
+
+.pdi-form-dialog::backdrop {
+    background: rgba(0, 0, 0, .72);
+}
+
+.pdi-form-header {
+    padding: 24px 26px 18px;
+}
+
+.pdi-form-dialog .pdi-form-title {
+    margin: 0 0 6px;
+    color: var(--pdi-real-text);
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.5;
+    letter-spacing: normal;
+    overflow-wrap: anywhere;
+}
+
+.pdi-form-dialog .pdi-form-note {
+    margin: 0;
+    color: var(--pdi-real-muted);
+    font-size: .875rem;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+}
+
+.pdi-form-content {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 0 26px 24px;
+}
+
+.pdi-form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 0;
+}
+
+.pdi-form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.pdi-form-label {
+    color: var(--pdi-real-text);
+    font-size: .875rem;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.pdi-form-input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 11px 14px;
+    border: 1px solid var(--pdi-real-border);
+    border-radius: 10px;
+    background: var(--pdi-real-input);
+    color: var(--pdi-real-text);
+    font: inherit;
+    font-size: .875rem;
+    line-height: 1.5;
+}
+
+.pdi-form-textarea {
+    min-height: 124px;
+    resize: vertical;
+}
+
+.pdi-form-input:read-only {
+    background: var(--pdi-real-secondary);
+}
+
+.pdi-form-input[aria-invalid='true'] {
+    border-color: var(--pdi-real-error);
+}
+
+.pdi-form-input:disabled,
+.pdi-form-button:disabled {
+    cursor: not-allowed;
+    opacity: .6;
+}
+
+.pdi-form-input:focus-visible,
+.pdi-form-button:focus-visible,
+.pdi-form-feedback:focus-visible,
+.pdi-form-title:focus-visible {
+    outline: 2px solid var(--pdi-real-accent);
+    outline-offset: 3px;
+}
+
+.pdi-form-dates {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.pdi-form-dialog .pdi-form-feedback {
+    margin: 0;
+    padding: 16px;
+    border: 1px solid var(--pdi-real-border);
+    border-radius: 12px;
+    background: var(--pdi-real-canvas);
+    color: var(--pdi-real-text);
+    font-size: .875rem;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+}
+
+.pdi-form-feedback p {
+    margin: 0;
+}
+
+.pdi-form-feedback p + p,
+.pdi-form-feedback .pdi-form-button {
+    margin-top: 12px;
+}
+
+.pdi-form-dialog .pdi-form-error {
+    border-color: var(--pdi-real-error);
+    color: var(--pdi-real-error);
+}
+
+.pdi-form-dialog .pdi-form-date-error {
+    margin: -6px 0 0;
+    color: var(--pdi-real-error);
+    font-size: .875rem;
+    line-height: 1.65;
+}
+
+.pdi-form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-top: 18px;
+    border-top: 1px solid var(--pdi-real-border);
+}
+
+.pdi-form-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 10px 14px;
+    border: 1px solid var(--pdi-real-border);
+    border-radius: 10px;
+    background: var(--pdi-real-input);
+    color: var(--pdi-real-text);
+    font: inherit;
+    font-size: .875rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.pdi-form-button-primary {
+    border-color: var(--pdi-real-accent);
+    background: var(--pdi-real-secondary);
+}
+
+.pdi-form-button:hover:not(:disabled) {
+    background: var(--pdi-real-secondary);
+}
+
+@media (max-width: 600px) {
+    .pdi-form-header {
+        padding: 20px 20px 18px;
+    }
+
+    .pdi-form-content {
+        padding: 0 20px 20px;
+    }
+
+    .pdi-form-dates {
+        grid-template-columns: 1fr;
+    }
+}

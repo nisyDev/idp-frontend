@@ -1,0 +1,121 @@
+.pdi-acoes {
+    min-width: 0;
+    padding-top: 20px;
+    border-top: 1px solid var(--pdi-real-border);
+}
+
+.pdi-acoes-header,
+.pdi-acoes-heading,
+.pdi-acoes-toolbar,
+.pdi-acoes-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.pdi-acoes-header,
+.pdi-acoes-card-header {
+    justify-content: space-between;
+}
+
+.pdi-acoes-header {
+    margin-bottom: 16px;
+}
+
+.pdi-acoes-heading h3,
+.pdi-acoes-card h4 {
+    margin: 0;
+    color: var(--pdi-real-text);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.5;
+    letter-spacing: normal;
+    overflow-wrap: anywhere;
+}
+
+.pdi-acoes-note,
+.pdi-acoes-confirmation,
+.pdi-acoes-error {
+    margin: 0 0 16px;
+    padding: 14px 16px;
+    border: 1px solid var(--pdi-real-border);
+    border-radius: 12px;
+    background: var(--pdi-real-secondary);
+    color: var(--pdi-real-muted);
+    font-size: .875rem;
+    overflow-wrap: anywhere;
+}
+
+.pdi-acoes-confirmation {
+    border-color: var(--pdi-real-accent);
+    color: var(--pdi-real-text);
+}
+
+.pdi-acoes-error {
+    border-color: var(--pdi-real-error);
+    color: var(--pdi-real-error);
+}
+
+.pdi-acoes-error p {
+    margin: 0 0 10px;
+}
+
+.pdi-acoes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.pdi-acoes-card {
+    min-width: 0;
+    padding: 18px 16px;
+    border: 1px solid var(--pdi-real-border);
+    border-radius: 14px;
+    background: var(--pdi-real-canvas);
+}
+
+.pdi-acoes-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 24px;
+    margin: 16px 0 0;
+}
+
+.pdi-acoes-fields > div {
+    min-width: 0;
+}
+
+.pdi-acoes-fields dt {
+    margin-bottom: 6px;
+    color: var(--pdi-real-text);
+    font-size: .8rem;
+    font-weight: 600;
+}
+
+.pdi-acoes-fields dd {
+    margin: 0;
+    color: var(--pdi-real-muted);
+    font-size: .875rem;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.pdi-acoes-period {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 600px) {
+    .pdi-acoes-toolbar {
+        width: 100%;
+    }
+
+    .pdi-acoes-toolbar .pdi-real-button {
+        flex: 1 1 140px;
+    }
+
+    .pdi-acoes-fields {
+        grid-template-columns: 1fr;
+    }
+}

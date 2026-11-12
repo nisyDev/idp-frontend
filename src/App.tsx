@@ -1,5 +1,10 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { autenticar, consultarSessao, encerrarSessao } from './services/auth';
+import type { UsuarioAutenticado } from './services/auth';
+import { ApiError } from './services/http';
+import talentSynkLogo from './assets/talentsynk-logo.svg';
+import talentSynkWordmark from './assets/talentsynk-wordmark.svg';
 
 // Importação das Telas
 import LoginPage from './pages/LoginPage';
@@ -66,51 +71,153 @@ const IconLightbulb = () => (
     </svg>
 );
 
+type OperacaoAutenticacao = 'restaurando' | 'entrando' | 'saindo' | null;
+
 function AppContent() {
     const { theme, mode, toggleTheme } = useTheme();
-    const [usuarioLogado, setUsuarioLogado] = useState<{
-        nome: string;
-        perfil: string;
-        iniciais: string;
-    } | null>(null);
+    const [usuarioLogado, setUsuarioLogado] = useState<(UsuarioAutenticado & { iniciais: string }) | null>(null);
+    const [operacao, setOperacao] = useState<OperacaoAutenticacao>('restaurando');
+    const [erroAutenticacao, setErroAutenticacao] = useState('');
+    const operacaoAtual = useRef<OperacaoAutenticacao>(null);
+    const requisicaoAtual = useRef<AbortController | null>(null);
+    const geracao = useRef(0);
+    const identidadeAtual = useRef<UsuarioAutenticado | null>(null);
 
-    const [telaAtiva, setTelaAtiva] = useState<'dashboard' | 'perfil' | 'pdi' | 'reunioes' | 'desenvolvimento' | 'organograma'>('dashboard');
+    const [telaAtiva, setTelaAtiva] = useState<'dashboard' | 'perfil' | 'pdi' | 'reunioes' | 'desenvolvimento' | 'organograma' | 'sugestoes'>('dashboard');
     const [sidebarAberta, setSidebarAberta] = useState(true);
 
-    const handleLogin = (perfilRecebido?: string | { nome?: string; perfil?: string }) => {
-        let perfil = 'COLABORADOR';
+    const registrarIdentidade = useCallback((usuario: UsuarioAutenticado | null) => {
+        identidadeAtual.current = usuario;
+        setUsuarioLogado(usuario ? {
+            ...usuario,
+            iniciais: usuario.nome.trim().split(/\s+/).map(parte => parte.charAt(0)).join('').slice(0, 2).toUpperCase(),
+        } : null);
+    }, []);
 
-        if (typeof perfilRecebido === 'string') {
-            perfil = perfilRecebido;
-        } else if (perfilRecebido && typeof perfilRecebido === 'object') {
-            if (perfilRecebido.perfil) perfil = perfilRecebido.perfil;
-        }
+    useEffect(() => {
+        let ativo = true;
+        const verificarSessao = async () => {
+            // Session reads must never interrupt or race a login/logout mutation.
+            if (operacaoAtual.current !== null) return;
+            const controller = new AbortController();
+            const atual = ++geracao.current;
+            operacaoAtual.current = 'restaurando';
+            requisicaoAtual.current = controller;
+            setOperacao('restaurando');
+            const vigente = () => ativo && !controller.signal.aborted && atual === geracao.current;
+            try {
+                const usuario = await consultarSessao(controller.signal);
+                if (!vigente()) return;
+                if (!usuario && identidadeAtual.current) {
+                    setErroAutenticacao('Sua sessão foi encerrada. Entre novamente.');
+                    setTelaAtiva('dashboard');
+                } else {
+                    setErroAutenticacao('');
+                }
+                registrarIdentidade(usuario);
+            } catch (error) {
+                if (vigente()) {
+                    setErroAutenticacao(error instanceof ApiError
+                        ? error.message : 'Não foi possível verificar a sessão. Tente novamente.');
+                }
+            } finally {
+                if (vigente()) {
+                    operacaoAtual.current = null;
+                    requisicaoAtual.current = null;
+                    setOperacao(null);
+                }
+            }
+        };
+        const aoRetomar = () => {
+            if (document.visibilityState === 'visible') void verificarSessao();
+        };
+        void verificarSessao();
+        window.addEventListener('focus', aoRetomar);
+        document.addEventListener('visibilitychange', aoRetomar);
+        return () => {
+            ativo = false;
+            geracao.current += 1;
+            requisicaoAtual.current?.abort();
+            requisicaoAtual.current = null;
+            operacaoAtual.current = null;
+            window.removeEventListener('focus', aoRetomar);
+            document.removeEventListener('visibilitychange', aoRetomar);
+        };
+    }, [registrarIdentidade]);
 
-        let nome: string;
+    const handleSessaoPdiExpirada = useCallback((usuarioId: string) => {
+        if (identidadeAtual.current?.id !== usuarioId
+            || operacaoAtual.current === 'entrando'
+            || operacaoAtual.current === 'saindo') return;
 
-        if (perfil.toUpperCase().includes('GESTOR') || perfil.toUpperCase().includes('GESTAO')) {
-            nome = 'Diego Rocha';
-            perfil = 'GESTOR';
-        } else if (perfil.toUpperCase().includes('RH') || perfil.toUpperCase().includes('ADMIN')) {
-            nome = 'Gustavo Alves';
-            perfil = 'RH';
-        } else {
-            nome = 'Ana Lima';
-            perfil = 'COLABORADOR';
-        }
-
-        const iniciais = nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-
-        setUsuarioLogado({ nome, perfil, iniciais });
+        // A late session check must not restore an identity rejected by the API.
+        geracao.current += 1;
+        requisicaoAtual.current?.abort();
+        requisicaoAtual.current = null;
+        operacaoAtual.current = null;
+        setOperacao(null);
+        registrarIdentidade(null);
         setTelaAtiva('dashboard');
+        setErroAutenticacao('Sua sessão foi encerrada. Entre novamente.');
+    }, [registrarIdentidade]);
+
+    const handleLogin = async (email: string, senha: string, lembrarAcesso: boolean): Promise<void> => {
+        if (operacaoAtual.current !== null) return;
+        const controller = new AbortController();
+        const atual = ++geracao.current;
+        operacaoAtual.current = 'entrando';
+        requisicaoAtual.current = controller;
+        setOperacao('entrando');
+        setErroAutenticacao('');
+        try {
+            const usuario = await autenticar(email, senha, lembrarAcesso, controller.signal);
+            if (controller.signal.aborted || atual !== geracao.current) return;
+            registrarIdentidade(usuario);
+            setTelaAtiva('dashboard');
+        } catch (error) {
+            if (!controller.signal.aborted && atual === geracao.current) {
+                setErroAutenticacao(error instanceof ApiError
+                    ? error.message : 'Não foi possível entrar. Tente novamente.');
+            }
+        } finally {
+            if (!controller.signal.aborted && atual === geracao.current) {
+                operacaoAtual.current = null;
+                requisicaoAtual.current = null;
+                setOperacao(null);
+            }
+        }
     };
 
-    const handleLogout = () => {
-        setUsuarioLogado(null);
+    const handleLogout = async (): Promise<void> => {
+        if (operacaoAtual.current !== null) return;
+        const controller = new AbortController();
+        const atual = ++geracao.current;
+        operacaoAtual.current = 'saindo';
+        requisicaoAtual.current = controller;
+        setOperacao('saindo');
+        setErroAutenticacao('');
+        try {
+            await encerrarSessao(controller.signal);
+            if (controller.signal.aborted || atual !== geracao.current) return;
+            registrarIdentidade(null);
+            setTelaAtiva('dashboard');
+        } catch {
+            if (!controller.signal.aborted && atual === geracao.current) {
+                // A network failure does not prove that the server invalidated its session.
+                setErroAutenticacao('Não foi possível confirmar a saída. Tente novamente.');
+            }
+        } finally {
+            if (!controller.signal.aborted && atual === geracao.current) {
+                operacaoAtual.current = null;
+                requisicaoAtual.current = null;
+                setOperacao(null);
+            }
+        }
     };
 
     if (!usuarioLogado) {
-        return <LoginPage onLogin={handleLogin} />;
+        return <LoginPage onLogin={handleLogin} ocupado={operacao !== null}
+                          restaurandoSessao={operacao === 'restaurando'} erroLogin={erroAutenticacao} />;
     }
 
     const menuItems = [
@@ -123,7 +230,7 @@ function AppContent() {
     ] as const;
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: theme.background, fontFamily: "'Inter', sans-serif", transition: 'background-color 0.3s ease' }}>
+        <div key={usuarioLogado.id} style={{ display: 'flex', minHeight: '100vh', backgroundColor: theme.background, fontFamily: "'Inter', sans-serif", transition: 'background-color 0.3s ease' }}>
 
             <style>{`
                 @keyframes slideIn {
@@ -226,23 +333,22 @@ function AppContent() {
             }}>
                 <div>
                     {/* Logo */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 12px', marginBottom: 36 }}>
-                        <div style={{
-                            width: 40, height: 40, borderRadius: 12,
-                            background: `linear-gradient(135deg, ${theme.accent}, ${theme.accentLight})`,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '1.25rem', fontWeight: 700, color: '#fff',
-                            boxShadow: `0 2px 8px ${theme.accent}33`
-                        }}>
-                            T
-                        </div>
-                        <div>
-                            <span style={{ color: theme.sidebarText, fontWeight: 700, fontSize: '1.1rem', letterSpacing: '-0.3px', display: 'block' }}>
-                                TalentSynk
-                            </span>
-                            <span style={{ color: theme.textTertiary, fontSize: '0.72rem' }}>
-                                Plataforma de PDI
-                            </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0 12px', marginBottom: 36 }}>
+                        <img
+                            src={talentSynkLogo}
+                            alt=""
+                            width={72}
+                            height={72}
+                            style={{ display: 'block', flexShrink: 0, objectFit: 'contain' }}
+                        />
+                        <div style={{ minWidth: 0 }}>
+                            <img
+                                src={talentSynkWordmark}
+                                alt="TalentSynk"
+                                width={128}
+                                height={22}
+                                style={{ display: 'block', maxWidth: '100%', height: 'auto' }}
+                            />
                         </div>
                     </div>
 
@@ -322,6 +428,7 @@ function AppContent() {
 
                     <button
                         onClick={handleLogout}
+                        disabled={operacao !== null}
                         style={{
                             display: 'flex', alignItems: 'center', gap: 10,
                             padding: '10px 16px', borderRadius: 10,
@@ -331,8 +438,11 @@ function AppContent() {
                         }}
                     >
                         <IconLogOut />
-                        <span style={{ marginLeft: 6 }}>Sair / Trocar Conta</span>
+                        <span style={{ marginLeft: 6 }}>{operacao === 'saindo' ? 'Saindo...' : 'Sair / Trocar Conta'}</span>
                     </button>
+                    {erroAutenticacao && (
+                        <div role="alert" style={{ color: theme.error, fontSize: '0.9rem' }}>{erroAutenticacao}</div>
+                    )}
                 </div>
             </aside>
 
@@ -366,11 +476,11 @@ function AppContent() {
 
                 {telaAtiva === 'dashboard' && <DashboardPage nomeUsuario={usuarioLogado.nome} perfil={usuarioLogado.perfil} />}
                 {telaAtiva === 'perfil' && <PerfilPage nomeUsuario={usuarioLogado.nome} perfil={usuarioLogado.perfil} />}
-                {telaAtiva === 'pdi' && <PdiPage nomeUsuario={usuarioLogado.nome} perfil={usuarioLogado.perfil} />}
+                {telaAtiva === 'pdi' && <PdiPage usuario={usuarioLogado} onSessaoExpirada={handleSessaoPdiExpirada} />}
                 {telaAtiva === 'reunioes' && <ReunioesPage nomeUsuario={usuarioLogado.nome} perfil={usuarioLogado.perfil} />}
                 {telaAtiva === 'desenvolvimento' && <DesenvolvimentoPage nomeUsuario={usuarioLogado.nome} perfil={usuarioLogado.perfil} />}
                 {telaAtiva === 'organograma' && <OrganomaPage nomeUsuario={usuarioLogado.nome} perfil={usuarioLogado.perfil} />}
-                {telaAtiva === 'sugestoes' && <SugestoesPage nomeUsuario={usuarioLogado.nome} perfil={usuarioLogado.perfil} /> }
+                {telaAtiva === 'sugestoes' && <SugestoesPage nomeUsuario={usuarioLogado.nome} /> }
             </main>
 
         </div>

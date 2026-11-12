@@ -1,22 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import talentSynkLogo from '../assets/talentsynk-logo.svg';
+import talentSynkWordmark from '../assets/talentsynk-wordmark.svg';
+import './LoginPage.css';
 
 // ─── ÍCONES ─────────────────────────────────────────────────────────────────
-const IconUser = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-    </svg>
-);
-
-const IconBriefcase = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-    </svg>
-);
-
-const IconShield = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+const IconCorporate = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false" style={{ display: 'block', flexShrink: 0 }}>
+        <rect x="5" y="3" width="14" height="18" rx="2"/>
+        <path d="M9 7h1m4 0h1M9 11h1m4 0h1M10 21v-6h4v6"/>
     </svg>
 );
 
@@ -38,14 +30,6 @@ const IconMessageSquare = () => (
     </svg>
 );
 
-const IconMicrosoft = () => (
-    <svg width="18" height="18" viewBox="0 0 23 23">
-        <path fill="#f35325" d="M1 1h10v10H1z"/>
-        <path fill="#81bc06" d="M12 1h10v10H12z"/>
-        <path fill="#05a6f0" d="M1 12h10v10H1z"/>
-        <path fill="#ffba08" d="M12 12h10v10H12z"/>
-    </svg>
-);
 
 const IconArrowRight = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -53,31 +37,41 @@ const IconArrowRight = () => (
     </svg>
 );
 
+const IconEye = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false" style={{ display: 'block', flexShrink: 0, overflow: 'visible' }}>
+        <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/>
+        <circle cx="12" cy="12" r="3"/>
+    </svg>
+);
+
+const IconEyeOff = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false" style={{ display: 'block', flexShrink: 0, overflow: 'visible' }}>
+        <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/>
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M2 2l20 20"/>
+    </svg>
+);
+
 interface LoginPageProps {
-    onLogin: (perfil: string) => void;
+    onLogin: (email: string, senha: string, lembrarAcesso: boolean) => Promise<void>;
+    ocupado?: boolean;
+    restaurandoSessao?: boolean;
+    erroLogin?: string;
 }
 
-export default function LoginPage({ onLogin }: LoginPageProps) {
-    const { theme } = useTheme();
-    const [perfilSelecionado, setPerfilSelecionado] = useState<'COLABORADOR' | 'GESTOR' | 'RH'>('COLABORADOR');
+export default function LoginPage({ onLogin, ocupado = false, restaurandoSessao = false, erroLogin = '' }: LoginPageProps) {
+    const { theme, mode } = useTheme();
+    const [email, setEmail] = useState('');
+    const [senha, setSenha] = useState('');
     const [lembrarAcesso, setLembrarAcesso] = useState(true);
-    const [email, setEmail] = useState('ana.lima@bgp.com');
-    const [senha, setSenha] = useState('123456');
-
-    // Mapeamento dos e-mails da BGP como na sua tela antiga
-    const dadosPorPerfil = {
-        COLABORADOR: { nome: 'Ana Lima', email: 'ana.lima@bgp.com' },
-        GESTOR: { nome: 'Diego Rocha', email: 'diego.rocha@bgp.com' },
-        RH: { nome: 'Gustavo Alves', email: 'gustavo.alves@bgp.com' },
-    };
-
-    useEffect(() => {
-        setEmail(dadosPorPerfil[perfilSelecionado].email);
-    }, [perfilSelecionado]);
+    const [mostrarSenha, setMostrarSenha] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onLogin(perfilSelecionado);
+        if (ocupado) return;
+        const senhaInformada = senha;
+        setSenha('');
+        void onLogin(email.trim(), senhaInformada, lembrarAcesso);
     };
 
     return (
@@ -153,22 +147,22 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 }}>
                     <div>
                         {/* Logo */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 36 }}>
-                            <div style={{
-                                width: 42, height: 42, borderRadius: 12,
-                                background: `linear-gradient(135deg, ${theme.accent}, ${theme.accentLight})`,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: '1.25rem', fontWeight: 700, color: '#fff',
-                                boxShadow: `0 2px 8px ${theme.accent}33`,
-                                transition: 'all 0.3s ease'
-                            }}>
-                                T
-                            </div>
-                            <div>
-                <span style={{ fontSize: '1.1rem', fontWeight: 700, color: theme.text, letterSpacing: '-0.3px', display: 'block', transition: 'color 0.3s ease' }}>
-                  TalentSynk
-                </span>
-                                <span style={{ color: theme.textSecondary, fontSize: '0.72rem', transition: 'color 0.3s ease' }}>Plataforma de PDI</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 36 }}>
+                            <img
+                                src={talentSynkLogo}
+                                alt=""
+                                width={72}
+                                height={72}
+                                style={{ display: 'block', flexShrink: 0, objectFit: 'contain' }}
+                            />
+                            <div style={{ minWidth: 0 }}>
+                                <img
+                                    src={talentSynkWordmark}
+                                    alt="TalentSynk"
+                                    width={128}
+                                    height={22}
+                                    style={{ display: 'block', maxWidth: '100%', height: 'auto' }}
+                                />
                             </div>
                         </div>
 
@@ -177,7 +171,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                             lineHeight: 1.25, letterSpacing: '-0.6px', marginBottom: 12, transition: 'color 0.3s ease'
                         }}>
                             Transformando objetivos em <span style={{
-                            background: `linear-gradient(135deg, ${theme.accent}, ${theme.accentLight})`,
+                            backgroundImage: `linear-gradient(135deg, ${theme.accent}, ${theme.accentLight})`,
                             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', transition: 'all 0.3s ease'
                         }}>evolução profissional</span>.
                         </h1>
@@ -238,97 +232,32 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                     </div>
 
                     <div style={{ color: theme.textSecondary, fontSize: '0.72rem', marginTop: 24, transition: 'color 0.3s ease' }}>
-                        TalentSynk v1.0.0 • BGP © 2026
+                        TalentSynk v1.0.0 © 2026
                     </div>
                 </div>
 
-                {/* ── LADO DIREITO: FORMULÁRIO COM 3 PERFIS + LOGIN MICROSOFT ─────── */}
+                {/* ── LADO DIREITO: AUTENTICAÇÃO LOCAL ──────────────────────────── */}
                 <div style={{ padding: '48px 40px', display: 'flex', flexDirection: 'column', justifyContent: 'center', transition: 'all 0.3s ease' }}>
                     <div style={{ marginBottom: 28 }}>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: theme.text, marginBottom: 4, transition: 'color 0.3s ease' }}>
                             Acessar Plataforma
                         </h2>
                         <p style={{ color: theme.textSecondary, fontSize: '0.85rem', transition: 'color 0.3s ease' }}>
-                            Selecione o perfil de demonstração para entrar
+                            Seu perfil será identificado após o login.
                         </p>
                     </div>
 
-                    {/* SELETOR DOS 3 PERFIS DA TELA ANTIGA */}
-                    <div style={{ marginBottom: 20 }}>
-                        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: theme.textTertiary, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 8 }}>
-                            Perfil de Acesso
-                        </label>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                            {/* COLABORADOR */}
-                            <button
-                                type="button"
-                                onClick={() => setPerfilSelecionado('COLABORADOR')}
-                                style={{
-                                    padding: '10px 8px', borderRadius: '10px',
-                                    border: perfilSelecionado === 'COLABORADOR' ? `2px solid ${theme.accent}` : `1px solid ${theme.inputBorder}`,
-                                    backgroundColor: perfilSelecionado === 'COLABORADOR' ? `${theme.accent}2E` : theme.inputBackground,
-                                    color: perfilSelecionado === 'COLABORADOR' ? theme.text : theme.textTertiary,
-                                    cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s ease'
-                                }}
-                            >
-                                <div style={{ fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                                    <IconUser /> Colaborador
-                                </div>
-                                <div style={{ fontSize: '0.68rem', color: perfilSelecionado === 'COLABORADOR' ? theme.accent : theme.textTertiary, marginTop: 2 }}>
-                                    Ana
-                                </div>
-                            </button>
-
-                            {/* GESTOR */}
-                            <button
-                                type="button"
-                                onClick={() => setPerfilSelecionado('GESTOR')}
-                                style={{
-                                    padding: '10px 8px', borderRadius: '10px',
-                                    border: perfilSelecionado === 'GESTOR' ? `2px solid ${theme.accent}` : `1px solid ${theme.inputBorder}`,
-                                    backgroundColor: perfilSelecionado === 'GESTOR' ? `${theme.accent}2E` : theme.inputBackground,
-                                    color: perfilSelecionado === 'GESTOR' ? theme.text : theme.textTertiary,
-                                    cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s ease'
-                                }}
-                            >
-                                <div style={{ fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                                    <IconBriefcase /> Gestor
-                                </div>
-                                <div style={{ fontSize: '0.68rem', color: perfilSelecionado === 'GESTOR' ? theme.accent : theme.textTertiary, marginTop: 2 }}>
-                                    Diego
-                                </div>
-                            </button>
-
-                            {/* RH / ADMIN */}
-                            <button
-                                type="button"
-                                onClick={() => setPerfilSelecionado('RH')}
-                                style={{
-                                    padding: '10px 8px', borderRadius: '10px',
-                                    border: perfilSelecionado === 'RH' ? `2px solid ${theme.accent}` : `1px solid ${theme.inputBorder}`,
-                                    backgroundColor: perfilSelecionado === 'RH' ? `${theme.accent}2E` : theme.inputBackground,
-                                    color: perfilSelecionado === 'RH' ? theme.text : theme.textTertiary,
-                                    cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s ease'
-                                }}
-                            >
-                                <div style={{ fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                                    <IconShield /> RH
-                                </div>
-                                <div style={{ fontSize: '0.68rem', color: perfilSelecionado === 'RH' ? theme.accent : theme.textTertiary, marginTop: 2 }}>
-                                    Gustavo
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-
-                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    <form onSubmit={handleSubmit} aria-busy={ocupado} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                         <div>
                             <label style={{ fontSize: '0.8rem', fontWeight: 600, color: theme.textTertiary, display: 'block', marginBottom: 6 }}>
                                 E-mail corporativo
                             </label>
                             <input
                                 type="email"
+                                name="email"
+                                autoComplete="username"
+                                required
+                                disabled={ocupado}
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 style={{
@@ -343,16 +272,34 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                             <label style={{ fontSize: '0.8rem', fontWeight: 600, color: theme.textTertiary, display: 'block', marginBottom: 6 }}>
                                 Senha
                             </label>
-                            <input
-                                type="password"
-                                value={senha}
-                                onChange={(e) => setSenha(e.target.value)}
-                                style={{
-                                    width: '100%', padding: '11px 14px', borderRadius: '10px',
-                                    backgroundColor: theme.inputBackground, border: `1px solid ${theme.inputBorder}`,
-                                    color: theme.text, fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box'
-                                }}
-                            />
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    type={mostrarSenha ? 'text' : 'password'}
+                                    className="talentsynk-login-password"
+                                    name="password"
+                                    autoComplete="current-password"
+                                    required
+                                    disabled={ocupado}
+                                    value={senha}
+                                    onChange={(e) => setSenha(e.target.value)}
+                                    style={{
+                                        width: '100%', padding: '11px 40px 11px 14px', borderRadius: '10px',
+                                        backgroundColor: theme.inputBackground, border: `1px solid ${theme.inputBorder}`,
+                                        color: theme.text, fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box'
+                                    }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setMostrarSenha((s) => !s)}
+                                    aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+                                    aria-pressed={mostrarSenha}
+                                    style={{
+                                        position: 'absolute', right: 8, top: 8, border: 'none', background: 'transparent', cursor: 'pointer', padding: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'visible'
+                                    }}
+                                >
+                                    {mostrarSenha ? <IconEyeOff /> : <IconEye />}
+                                </button>
+                            </div>
                         </div>
 
                         {/* OPÇÃO LEMBRAR E ESQUECI MINHA SENHA */}
@@ -362,18 +309,21 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                                     type="checkbox"
                                     checked={lembrarAcesso}
                                     onChange={(e) => setLembrarAcesso(e.target.checked)}
+                                    disabled={ocupado}
+                                    title="Manter o acesso ao reabrir o navegador enquanto a sessão permanecer válida."
                                     style={{ accentColor: theme.accent }}
                                 />
                                 Lembrar acesso
                             </label>
                             <a href="#esqueceu" onClick={(e) => e.preventDefault()} style={{ color: theme.accent, textDecoration: 'none', fontWeight: 500 }}>
-                                Esqueceu minha senha?
+                                Esqueceu sua senha?
                             </a>
                         </div>
 
                         {/* BOTÃO ENTRAR */}
                         <button
                             type="submit"
+                            disabled={ocupado}
                             style={{
                                 marginTop: 6, padding: '13px', borderRadius: '12px', border: 'none',
                                 background: `linear-gradient(135deg, ${theme.accent}, ${theme.accentLight})`, color: '#FFFFFF',
@@ -382,36 +332,41 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                                 boxShadow: `0 2px 8px ${theme.accent}33`
                             }}
                         >
-                            Entrar na Plataforma <IconArrowRight />
+                            {restaurandoSessao ? 'Verificando sessão...' : ocupado ? 'Entrando...' : 'Entrar na Plataforma'} <IconArrowRight />
                         </button>
+
+                        {erroLogin && (
+                            <div role="alert" style={{ color: theme.error, marginTop: 8, fontSize: '0.9rem' }}>{erroLogin}</div>
+                        )}
                     </form>
 
-                    {/* DIVISOR "OU" */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '18px 0' }}>
-                        <div style={{ flex: 1, height: '1px', backgroundColor: theme.cardBorder }} />
-                        <span style={{ fontSize: '0.75rem', color: theme.textTertiary, fontWeight: 600 }}>ou</span>
-                        <div style={{ flex: 1, height: '1px', backgroundColor: theme.cardBorder }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '22px 0', color: theme.textTertiary, fontSize: '0.72rem', fontWeight: 600 }}>
+                        <span aria-hidden="true" style={{ flex: 1, borderTop: `1px solid ${theme.cardBorder}` }} />
+                        <span>OU</span>
+                        <span aria-hidden="true" style={{ flex: 1, borderTop: `1px solid ${theme.cardBorder}` }} />
                     </div>
 
-                    {/* BOTÃO ENTRAR COM MICROSOFT */}
                     <button
                         type="button"
-                        onClick={() => onLogin(perfilSelecionado)}
+                        disabled
+                        aria-describedby="corporate-login-unavailable"
                         style={{
-                            padding: '12px', borderRadius: '12px',
+                            width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '13px 14px', borderRadius: '12px',
                             border: `1px solid ${theme.cardBorder}`,
-                            backgroundColor: theme.cardBackground, color: theme.text,
-                            fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
+                            backgroundColor: mode === 'dark' ? theme.backgroundSecondary : theme.text,
+                            color: mode === 'dark' ? theme.textSecondary : theme.cardBackground,
+                            fontFamily: 'inherit', fontSize: '0.85rem', fontWeight: 600, lineHeight: 1.4,
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                            transition: 'all 0.15s ease'
+                            cursor: 'not-allowed', transition: 'background-color 0.3s ease, color 0.3s ease'
                         }}
                     >
-                        <IconMicrosoft /> Entrar com Microsoft
+                        <IconCorporate />
+                        <span>Entrar com a conta corporativa</span>
                     </button>
+                    <p id="corporate-login-unavailable" style={{ margin: '8px 0 0', textAlign: 'center', color: theme.textSecondary, fontSize: '0.72rem' }}>
+                        Indisponível no momento
+                    </p>
 
-                    <div style={{ textAlign: 'center', marginTop: 20, fontSize: '0.78rem', color: theme.textTertiary }}>
-                        Não possui acesso? <a href="#solicite" onClick={(e) => e.preventDefault()} style={{ color: theme.accent, textDecoration: 'none', fontWeight: 600 }}>Solicite acesso ao RH</a>
-                    </div>
 
                 </div>
 
