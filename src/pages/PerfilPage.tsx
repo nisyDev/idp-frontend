@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import EditableField from '../components/EditableField';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface PerfilPageProps {
@@ -31,9 +30,6 @@ export default function PerfilPage({ nomeUsuario = 'Ana Lima', perfil = 'COLABOR
         setTimeout(() => setSaveMessage(''), 2000);
     };
 
-    const handleUpdate = (field: string, value: string) => {
-        setUserData(prev => ({ ...prev, [field]: value }));
-    };
     
     return (
         <div style={{ maxWidth: '960px', margin: '0 auto', paddingBottom: '40px' }}>
