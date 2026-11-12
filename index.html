@@ -4,6 +4,37 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      :root {
+        --bg: #FFFBF0;
+        background-color: var(--bg);
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme]) {
+          --bg: #0F172A;
+          color-scheme: dark;
+        }
+      }
+      :root[data-theme="light"] {
+        --bg: #FFFBF0;
+        color-scheme: light;
+      }
+      :root[data-theme="dark"] {
+        --bg: #0F172A;
+        color-scheme: dark;
+      }
+      body {
+        background-color: var(--bg);
+      }
+    </style>
+    <script>
+      (() => {
+        const prefersDark = typeof window.matchMedia === 'function'
+          && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.dataset.theme = prefersDark ? 'dark' : 'light';
+      })();
+    </script>
     <title>idp-frontend</title>
   </head>
   <body>
