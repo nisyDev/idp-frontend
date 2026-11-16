@@ -14,6 +14,9 @@ export interface CriarAcaoPdiRequest {
     resultadoEsperado: string | null;
 }
 
+// O PUT substitui integralmente os cinco campos editáveis.
+export type AtualizarAcaoPdiRequest = CriarAcaoPdiRequest;
+
 export interface AcaoPdiResponse {
     id: number;
     acaoVersaoId: number;

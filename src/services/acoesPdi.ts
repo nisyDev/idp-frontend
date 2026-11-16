@@ -1,5 +1,5 @@
 import { STATUS_EXECUCAO_ACAO_PDI } from '../types/acaoPdi';
-import type { AcaoPdiResponse, CriarAcaoPdiRequest } from '../types/acaoPdi';
+import type { AcaoPdiResponse, AtualizarAcaoPdiRequest, CriarAcaoPdiRequest } from '../types/acaoPdi';
 import { obterCsrf } from './auth';
 import { ApiError, requisitarApiComSessao } from './http';
 
@@ -52,12 +52,14 @@ function copiarAcao(acao: AcaoPdiResponse): AcaoPdiResponse {
     };
 }
 
-function erroAcao(error: unknown): ApiError {
+function erroAcao(error: unknown, operacao: 'criacao' | 'edicao' = 'criacao'): ApiError {
     if (!(error instanceof ApiError)) return new ApiError('Não foi possível concluir a solicitação. Tente novamente.');
     if (error.status === 400) return new ApiError('Confira os campos e as datas planejadas da ação.', 400);
     if (error.status === 404) return new ApiError('PDI ou ações não encontrados ou indisponíveis para este acesso.', 404);
     if (error.status === 409) {
-        return new ApiError('O PDI não permite incluir ações neste momento ou houve um conflito. Recarregue o PDI antes de criar uma nova ação.', 409);
+        return new ApiError(operacao === 'edicao'
+            ? 'A ação não pode ser editada neste momento ou houve um conflito. Feche o formulário e atualize a lista antes de tentar novamente.'
+            : 'O PDI não permite incluir ações neste momento ou houve um conflito. Recarregue o PDI antes de criar uma nova ação.', 409);
     }
     return error;
 }
@@ -123,6 +125,53 @@ export async function criarAcaoPdi(
     }
 
     if (response.status !== 201 || !acaoValida(response.dados)
+        || response.dados.pdiId !== pdiId || response.dados.pdiVersaoId !== pdiVersaoId) {
+        throw new GravacaoAcaoNaoConfirmadaError(response.status);
+    }
+    return copiarAcao(response.dados);
+}
+
+// PUT completo: nunca omitir campos nem repetir a gravação automaticamente.
+export async function atualizarAcaoPdi(
+    pdiId: number,
+    pdiVersaoId: number,
+    acaoId: number,
+    campos: AtualizarAcaoPdiRequest,
+    signal?: AbortSignal,
+): Promise<AcaoPdiResponse> {
+    validarContexto(pdiId, pdiVersaoId);
+    if (!inteiroPositivo(acaoId)) {
+        throw new ApiError('Ação não encontrada ou indisponível para este acesso.', 404);
+    }
+
+    const corpo: AtualizarAcaoPdiRequest = {
+        titulo: campos.titulo ?? null,
+        objetivo: campos.objetivo ?? null,
+        inicioPlanejado: campos.inicioPlanejado ?? null,
+        fimPlanejado: campos.fimPlanejado ?? null,
+        resultadoEsperado: campos.resultadoEsperado ?? null,
+    };
+    // Erro ao obter CSRF ocorre antes de qualquer tentativa de escrita.
+    const csrf = await obterCsrf(signal);
+    let response: { status: number; dados: unknown };
+    try {
+        response = await requisitarApiComSessao(`/api/pdis/${pdiId}/acoes/${acaoId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', [csrf.headerName]: csrf.token },
+            body: JSON.stringify(corpo),
+            signal,
+        });
+    } catch (error) {
+        if (signal?.aborted) throw error;
+        if (!(error instanceof ApiError) || error.status === null
+            || error.status >= 500 || (error.status >= 200 && error.status < 300)) {
+            throw new GravacaoAcaoNaoConfirmadaError(error instanceof ApiError ? error.status : null);
+        }
+        throw erroAcao(error, 'edicao');
+    }
+
+    if (response.status !== 200 || !acaoValida(response.dados)
+        || response.dados.id !== acaoId
         || response.dados.pdiId !== pdiId || response.dados.pdiVersaoId !== pdiVersaoId) {
         throw new GravacaoAcaoNaoConfirmadaError(response.status);
     }

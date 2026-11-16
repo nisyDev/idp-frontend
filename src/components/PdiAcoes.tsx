@@ -13,6 +13,8 @@ interface PdiAcoesProps {
     onSessaoExpirada: () => void;
 }
 
+type EditorAcao = { modo: 'criacao' } | { modo: 'edicao'; acao: AcaoPdiResponse };
+
 type EstadoAcoes =
     | { tipo: 'carregando'; acoes: AcaoPdiResponse[] | null }
     | { tipo: 'sucesso'; acoes: AcaoPdiResponse[] }
@@ -44,7 +46,7 @@ export default function PdiAcoes({ pdi, bloqueado, onSessaoExpirada }: PdiAcoesP
     const permitido = podeEditarRascunho(pdi);
     const [consulta, setConsulta] = useState<EstadoAcoes>({ tipo: 'carregando', acoes: null });
     const [atualizacao, setAtualizacao] = useState(0);
-    const [formularioAberto, setFormularioAberto] = useState(false);
+    const [editor, setEditor] = useState<EditorAcao | null>(null);
     const [confirmacao, setConfirmacao] = useState('');
     const geracao = useRef(0);
 
@@ -86,15 +88,15 @@ export default function PdiAcoes({ pdi, bloqueado, onSessaoExpirada }: PdiAcoesP
     }, []);
 
     const fecharFormulario = useCallback(() => {
-        setFormularioAberto(false);
+        setEditor(null);
         // Recheck availability, including after a conflict or an unconfirmed write.
         atualizar();
     }, [atualizar]);
 
-    const aoSalvar = useCallback((acao: AcaoPdiResponse) => {
+    const aoSalvar = useCallback((acao: AcaoPdiResponse, modo: 'criacao' | 'edicao') => {
         geracao.current += 1;
-        setFormularioAberto(false);
-        setConfirmacao('Ação cadastrada com sucesso.');
+        setEditor(null);
+        setConfirmacao(modo === 'edicao' ? 'Ação atualizada com sucesso.' : 'Ação cadastrada com sucesso.');
         setConsulta((anterior) => {
             if (!anterior.acoes) return { tipo: 'carregando', acoes: null };
             const acoes = anterior.acoes.filter((item) => item.id !== acao.id);
@@ -106,9 +108,16 @@ export default function PdiAcoes({ pdi, bloqueado, onSessaoExpirada }: PdiAcoesP
     }, []);
 
     function abrirFormulario() {
-        if (bloqueado || !permitido || consulta.tipo !== 'sucesso' || formularioAberto) return;
+        if (bloqueado || !permitido || consulta.tipo !== 'sucesso' || editor !== null) return;
         setConfirmacao('');
-        setFormularioAberto(true);
+        setEditor({ modo: 'criacao' });
+    }
+
+    function abrirEdicao(acao: AcaoPdiResponse) {
+        if (bloqueado || !permitido || consulta.tipo !== 'sucesso' || editor !== null
+            || acao.pdiId !== pdi.id || acao.pdiVersaoId !== pdi.versaoId) return;
+        setConfirmacao('');
+        setEditor({ modo: 'edicao', acao });
     }
 
     const acoes = consulta.acoes;
@@ -129,12 +138,12 @@ export default function PdiAcoes({ pdi, bloqueado, onSessaoExpirada }: PdiAcoesP
                         <button
                             type="button" className="pdi-real-button"
                             onClick={atualizar}
-                            disabled={bloqueado || carregando || formularioAberto || sessaoExpirada}
+                            disabled={bloqueado || carregando || editor !== null || sessaoExpirada}
                         >Atualizar ações</button>
                         <button
                             type="button" className="pdi-real-button pdi-real-button-primary"
                             onClick={abrirFormulario}
-                            disabled={bloqueado || consulta.tipo !== 'sucesso' || formularioAberto}
+                            disabled={bloqueado || consulta.tipo !== 'sucesso' || editor !== null}
                         ><span aria-hidden="true">+</span> Nova ação</button>
                     </div>
                 )}
@@ -155,7 +164,7 @@ export default function PdiAcoes({ pdi, bloqueado, onSessaoExpirada }: PdiAcoesP
                             <p>{consulta.mensagem}</p>
                             {acoes !== null && <p>As ações já carregadas foram mantidas.</p>}
                             {!sessaoExpirada && (
-                                <button type="button" className="pdi-real-button" onClick={atualizar} disabled={bloqueado || formularioAberto}>
+                                <button type="button" className="pdi-real-button" onClick={atualizar} disabled={bloqueado || editor !== null}>
                                     Tentar novamente
                                 </button>
                             )}
@@ -172,7 +181,16 @@ export default function PdiAcoes({ pdi, bloqueado, onSessaoExpirada }: PdiAcoesP
                                 <article key={acao.id} className="pdi-acoes-card" aria-labelledby={'acao-pdi-title-' + acao.acaoVersaoId}>
                                     <div className="pdi-acoes-card-header">
                                         <h4 id={'acao-pdi-title-' + acao.acaoVersaoId}>{acao.titulo?.trim() || 'Título não informado'}</h4>
-                                        <span className="pdi-real-badge">{execucao[acao.statusExecucao]}</span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                            <span className="pdi-real-badge">{execucao[acao.statusExecucao]}</span>
+                                            <button
+                                                type="button"
+                                                className="pdi-real-button pdi-real-button-compact"
+                                                onClick={() => abrirEdicao(acao)}
+                                                disabled={bloqueado || consulta.tipo !== 'sucesso' || editor !== null}
+                                                aria-label={'Editar ação ' + (acao.titulo?.trim() || '#' + acao.id)}
+                                            >Editar</button>
+                                        </div>
                                     </div>
                                     <dl className="pdi-acoes-fields">
                                         <div><dt>Objetivo</dt><dd>{acao.objetivo?.trim() || 'Objetivo não informado.'}</dd></div>
@@ -186,9 +204,11 @@ export default function PdiAcoes({ pdi, bloqueado, onSessaoExpirada }: PdiAcoesP
                 </>
             )}
 
-            {permitido && formularioAberto && (
+            {permitido && editor !== null && (
                 <AcaoPdiFormulario
+                    key={editor.modo === 'edicao' ? 'editar-' + editor.acao.id : 'criar'}
                     pdi={pdi}
+                    acao={editor.modo === 'edicao' ? editor.acao : undefined}
                     onFechar={fecharFormulario}
                     onSalvo={aoSalvar}
                     onSessaoExpirada={onSessaoExpirada}

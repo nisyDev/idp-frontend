@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
-import { criarAcaoPdi, GravacaoAcaoNaoConfirmadaError } from '../services/acoesPdi';
+import { atualizarAcaoPdi, criarAcaoPdi, GravacaoAcaoNaoConfirmadaError } from '../services/acoesPdi';
 import { ApiError } from '../services/http';
 import { podeEditarRascunho } from '../services/pdis';
 import type { AcaoPdiResponse, CriarAcaoPdiRequest } from '../types/acaoPdi';
@@ -9,8 +9,9 @@ import './PdiFormulario.css';
 
 type AcaoPdiFormularioProps = {
     pdi: PdiRascunhoResponse;
+    acao?: AcaoPdiResponse;
     onFechar: () => void;
-    onSalvo: (acao: AcaoPdiResponse) => void;
+    onSalvo: (acao: AcaoPdiResponse, modo: 'criacao' | 'edicao') => void;
     onSessaoExpirada: () => void;
 };
 
@@ -45,7 +46,7 @@ function periodoInvalido(inicio: string | null, fim: string | null): boolean {
     return false;
 }
 
-function FormularioAberto({ pdi, onFechar, onSalvo, onSessaoExpirada }: AcaoPdiFormularioProps) {
+function FormularioAberto({ pdi, acao, onFechar, onSalvo, onSessaoExpirada }: AcaoPdiFormularioProps) {
     const identificador = useId();
     const tituloId = identificador + '-titulo';
     const descricaoId = identificador + '-descricao';
@@ -61,13 +62,22 @@ function FormularioAberto({ pdi, onFechar, onSalvo, onSessaoExpirada }: AcaoPdiF
     const bloqueadoRef = useRef(false);
     const gravacaoControllerRef = useRef<AbortController | null>(null);
     const callbacksRef = useRef({ onFechar, onSalvo, onSessaoExpirada });
-    const [campos, setCampos] = useState<CamposFormulario>(camposVazios);
+    const modoEdicao = acao !== undefined;
+    // A chave do componente garante nova inicialização ao trocar de ação.
+    const [campos, setCampos] = useState<CamposFormulario>(() => acao ? {
+        titulo: acao.titulo ?? '',
+        objetivo: acao.objetivo ?? '',
+        inicioPlanejado: acao.inicioPlanejado ?? '',
+        fimPlanejado: acao.fimPlanejado ?? '',
+        resultadoEsperado: acao.resultadoEsperado ?? '',
+    } : { ...camposVazios });
     const [bloqueio, setBloqueio] = useState<Bloqueio>('nenhum');
     const [enviando, setEnviando] = useState(false);
     const [erroEnvio, setErroEnvio] = useState<string | null>(null);
     const [erroPeriodo, setErroPeriodo] = useState(false);
-    // Esta guarda orienta a interface. O servidor decide se a criação é permitida.
-    const editavel = podeEditarRascunho(pdi);
+    // A interface faz a guarda inicial; o servidor valida titularidade e histórico.
+    const editavel = podeEditarRascunho(pdi)
+        && (!acao || (acao.pdiId === pdi.id && acao.pdiVersaoId === pdi.versaoId));
 
     useEffect(() => {
         callbacksRef.current = { onFechar, onSalvo, onSessaoExpirada };
@@ -135,7 +145,9 @@ function FormularioAberto({ pdi, onFechar, onSalvo, onSessaoExpirada }: AcaoPdiF
         let acaoSalva: AcaoPdiResponse | null = null;
 
         try {
-            const resposta = await criarAcaoPdi(pdi.id, pdi.versaoId, dados, controller.signal);
+            const resposta = acao
+                ? await atualizarAcaoPdi(pdi.id, pdi.versaoId, acao.id, dados, controller.signal)
+                : await criarAcaoPdi(pdi.id, pdi.versaoId, dados, controller.signal);
             if (!vigente()) return;
             acaoSalva = resposta;
         } catch (error: unknown) {
@@ -154,16 +166,23 @@ function FormularioAberto({ pdi, onFechar, onSalvo, onSessaoExpirada }: AcaoPdiF
                     setErroEnvio('Sua sessão não está ativa. Entre novamente.');
                     callbacksRef.current.onSessaoExpirada();
                 } else if (status === 403) {
-                    setErroEnvio('Você não tem permissão para criar uma ação neste PDI. Seus campos foram mantidos.');
+                    setErroEnvio(modoEdicao
+                        ? 'Você não tem permissão para editar esta ação. Seus campos foram mantidos.'
+                        : 'Você não tem permissão para criar uma ação neste PDI. Seus campos foram mantidos.');
                 } else if (status === 404) {
                     bloqueadoRef.current = true;
                     setBloqueio('indisponivel');
-                    setErroEnvio('Este PDI ou esta versão não está disponível. '
+                    setErroEnvio(modoEdicao
+                        ? 'Esta ação ou versão não está disponível. Feche este formulário para atualizar a lista de ações. Seus campos foram mantidos.'
+                        : 'Este PDI ou esta versão não está disponível. '
                         + 'Feche este formulário para atualizar a lista de ações. Seus campos foram mantidos.');
                 } else if (status === 409) {
                     bloqueadoRef.current = true;
                     setBloqueio('conflito');
-                    setErroEnvio('Este PDI mudou ou não permite criar ações neste momento. '
+                    setErroEnvio(modoEdicao
+                        ? 'Este PDI mudou ou não permite editar ações neste momento. '
+                        + 'Feche este formulário e atualize a lista antes de tentar novamente. Seus campos foram mantidos.'
+                        : 'Este PDI mudou ou não permite criar ações neste momento. '
                         + 'Feche este formulário para atualizar a lista de ações antes de fazer um novo envio. '
                         + 'Seus campos foram mantidos.');
                 } else {
@@ -180,9 +199,9 @@ function FormularioAberto({ pdi, onFechar, onSalvo, onSessaoExpirada }: AcaoPdiF
             if (gravacaoControllerRef.current === controller) gravacaoControllerRef.current = null;
         }
 
-        // O pai fecha o formulário e consulta a lista após a criação confirmada pelo serviço.
+        // Atualizar o cartão apenas após resposta confirmada; o pai reconcilia a lista.
         if (acaoSalva && ativoRef.current && !controller.signal.aborted) {
-            callbacksRef.current.onSalvo(acaoSalva);
+            callbacksRef.current.onSalvo(acaoSalva, modoEdicao ? 'edicao' : 'criacao');
         }
     }
 
@@ -207,7 +226,7 @@ function FormularioAberto({ pdi, onFechar, onSalvo, onSessaoExpirada }: AcaoPdiF
         >
             <header className="pdi-form-header">
                 <h2 id={tituloId} ref={cabecalhoRef} className="pdi-form-title" tabIndex={-1}>
-                    Nova ação do PDI
+                    {modoEdicao ? 'Editar ação do PDI' : 'Nova ação do PDI'}
                 </h2>
                 <p id={descricaoId} className="pdi-form-note">Todos os campos são opcionais.</p>
                 <p id={contextoId} className="pdi-form-note">
@@ -224,7 +243,7 @@ function FormularioAberto({ pdi, onFechar, onSalvo, onSessaoExpirada }: AcaoPdiF
 
                 {!editavel && (
                     <p className="pdi-form-feedback" role="status">
-                        Este PDI está disponível para consulta e não permite criar ações neste momento.
+                        Este PDI está disponível para consulta e não permite {modoEdicao ? 'editar' : 'criar'} ações neste momento.
                     </p>
                 )}
 
@@ -315,7 +334,7 @@ function FormularioAberto({ pdi, onFechar, onSalvo, onSessaoExpirada }: AcaoPdiF
                         type="submit"
                         className="pdi-form-button pdi-form-button-primary"
                         disabled={salvarDesabilitado}
-                    >{enviando ? 'Salvando…' : 'Salvar ação'}</button>
+                    >{enviando ? 'Salvando…' : modoEdicao ? 'Salvar alterações' : 'Salvar ação'}</button>
                 </footer>
             </form>
         </dialog>
@@ -323,5 +342,8 @@ function FormularioAberto({ pdi, onFechar, onSalvo, onSessaoExpirada }: AcaoPdiF
 }
 
 export default function AcaoPdiFormulario(props: AcaoPdiFormularioProps) {
-    return <FormularioAberto key={props.pdi.id + '-' + props.pdi.versaoId} {...props} />;
+    return <FormularioAberto
+        key={props.pdi.id + '-' + props.pdi.versaoId + '-' + (props.acao?.id ?? 'nova')}
+        {...props}
+    />;
 }
