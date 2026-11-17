@@ -9,7 +9,7 @@ export class ApiError extends Error {
 }
 
 interface RequisicaoComSessao {
-    method?: 'GET' | 'POST' | 'PUT';
+    method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
     headers?: Record<string, string>;
     body?: URLSearchParams | string;
     signal?: AbortSignal;

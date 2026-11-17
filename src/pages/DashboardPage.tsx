@@ -48,10 +48,8 @@ export default function DashboardPage({
     const { theme } = useTheme();
     const primeiroNome = nomeUsuario.split(' ')[0];
     const tipoUsuario = perfil.charAt(0).toUpperCase() + perfil.slice(1).toLowerCase();
-    const progressoDesenvolvimento = 45;
-
     const indicadores = [
-        { label: "PDI's ativos", value: 1, icon: <IconTarget /> },
+        { label: 'Meus PDIs — consulte a área PDI', value: '—', icon: <IconTarget /> },
         { label: 'Feedbacks recebidos', value: 3, icon: <IconMessageSquare /> },
         { label: 'Reuniões agendadas', value: 2, icon: <IconCalendar /> },
     ];
@@ -177,16 +175,14 @@ export default function DashboardPage({
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: theme.text, fontSize: '1rem', fontWeight: 700, marginBottom: 14 }}>
                     <span>Indicador de desenvolvimento</span>
-                    <span>{progressoDesenvolvimento}%</span>
+                    <span>Não disponível</span>
                 </div>
                 <div style={{ width: '100%', height: 10, borderRadius: 999, backgroundColor: theme.backgroundSecondary, overflow: 'hidden' }}>
-                    <div style={{
-                        width: `${progressoDesenvolvimento}%`,
-                        height: '100%',
-                        borderRadius: 999,
-                        backgroundColor: theme.accent,
-                    }} />
+                    <div aria-hidden="true" />
                 </div>
+                <p style={{ color: theme.textSecondary, fontSize: '0.875rem', margin: '12px 0 0' }}>
+                    Consulte o status e as ações do seu plano na área PDI.
+                </p>
             </section>
 
             <section style={{

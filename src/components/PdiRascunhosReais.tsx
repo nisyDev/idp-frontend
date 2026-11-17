@@ -1,13 +1,14 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { ApiError } from '../services/http';
 import type { UsuarioAutenticado } from '../services/auth';
-import { listarRascunhos, podeEditarRascunho } from '../services/pdis';
-import type { PdiRascunhoResponse, StatusAprovacaoPdi, StatusExecucaoPdi } from '../types/pdi';
+import { GravacaoPdiNaoConfirmadaError, listarRascunhos, podeEditarRascunho, submeterPdi } from '../services/pdis';
+import type { PdiRascunhoResponse, PdiSubmetidoResponse, StatusAprovacaoPdi, StatusExecucaoPdi } from '../types/pdi';
 import PdiFormulario from './PdiFormulario';
 import PdiAcoes from './PdiAcoes';
 import './PdiRascunhosReais.css';
+import './PdiFormulario.css';
 
 type EstadoConsulta =
     | { tipo: 'carregando'; pdis: PdiRascunhoResponse[] | null }
@@ -74,16 +75,113 @@ function Mensagem({
     );
 }
 
+function ConfirmarSubmissao({ pdi, onFechar, onSubmetido, onSessaoExpirada }: {
+    pdi: PdiRascunhoResponse;
+    onFechar: () => void;
+    onSubmetido: (pdi: PdiSubmetidoResponse) => void;
+    onSessaoExpirada: () => void;
+}) {
+    const dialog = useRef<HTMLDialogElement>(null);
+    const tituloId = useId();
+    const ativo = useRef(false);
+    const emEnvio = useRef(false);
+    const bloqueioRef = useRef(false);
+    const controller = useRef<AbortController | null>(null);
+    const [enviando, setEnviando] = useState(false);
+    const [bloqueada, setBloqueada] = useState(false);
+    const [erro, setErro] = useState('');
+    useEffect(() => {
+        const elemento = dialog.current;
+        const focoAnterior = document.activeElement;
+        ativo.current = true;
+        elemento?.showModal();
+        return () => {
+            ativo.current = false;
+            controller.current?.abort();
+            if (elemento?.open) elemento.close();
+            if (focoAnterior instanceof HTMLElement && focoAnterior.isConnected) focoAnterior.focus();
+        };
+    }, []);
+    async function confirmar() {
+        if (!ativo.current || emEnvio.current || bloqueioRef.current) return;
+        emEnvio.current = true;
+        setEnviando(true);
+        setErro('');
+        const requisicao = new AbortController();
+        controller.current = requisicao;
+        let resultado: PdiSubmetidoResponse | null = null;
+        try {
+            resultado = await submeterPdi(pdi.id, pdi.versaoId, requisicao.signal);
+            if (!ativo.current || requisicao.signal.aborted) resultado = null;
+        } catch (error) {
+            if (!ativo.current || requisicao.signal.aborted) return;
+            if (error instanceof GravacaoPdiNaoConfirmadaError) {
+                bloqueioRef.current = true;
+                setBloqueada(true);
+                setErro('Não foi possível confirmar a submissão. O PDI exibido foi mantido e um novo envio está bloqueado. '
+                    + 'Feche esta confirmação e confira os rascunhos e as versões submetidas.');
+            } else {
+                const status = error instanceof ApiError ? error.status : null;
+                if (status === 401) onSessaoExpirada();
+                if (status === 401 || status === 403 || status === 404 || status === 409) {
+                    bloqueioRef.current = true;
+                    setBloqueada(true);
+                }
+                setErro(status === 409
+                    ? 'Esta versão mudou, já foi submetida ou não atende às condições para submissão. '
+                        + 'Confira se há uma ação ativa e um gestor ativo; feche e atualize os dados.'
+                    : error instanceof ApiError ? error.message : 'Não foi possível submeter o PDI.');
+            }
+        } finally {
+            if (ativo.current) {
+                emEnvio.current = false;
+                setEnviando(false);
+            }
+            controller.current = null;
+        }
+        if (resultado && ativo.current) onSubmetido(resultado);
+    }
+    function fechar() { if (!emEnvio.current) onFechar(); }
+    return (
+        <dialog ref={dialog} className="pdi-form-dialog" aria-labelledby={tituloId}
+            onCancel={(event) => { event.preventDefault(); fechar(); }}
+            onClose={(event) => {
+                if (!ativo.current || event.currentTarget.open) return;
+                if (emEnvio.current) event.currentTarget.showModal();
+                else fechar();
+            }}>
+            <header className="pdi-form-header"><h2 id={tituloId} className="pdi-form-title">Submeter PDI para aprovação</h2></header>
+            <div className="pdi-form-content" aria-busy={enviando}>
+                <p>Enviar “{pdi.titulo?.trim() || 'PDI sem título'}”, versão {pdi.numeroVersao}, ao gestor responsável?</p>
+                <p className="pdi-form-note">A versão submetida ficará disponível para consulta. A edição será bloqueada enquanto aguarda decisão.</p>
+                {erro && <p className="pdi-form-feedback pdi-form-error" role="alert">{erro}</p>}
+                <footer className="pdi-form-actions">
+                    <button type="button" className="pdi-form-button" onClick={fechar} disabled={enviando}>Fechar</button>
+                    <button type="button" className="pdi-form-button pdi-form-button-primary"
+                        onClick={() => void confirmar()} disabled={enviando || bloqueada}>
+                        {enviando ? 'Enviando…' : 'Confirmar submissão'}
+                    </button>
+                </footer>
+            </div>
+        </dialog>
+    );
+}
+
 function CartaoRascunho({
-    pdi, nomeUsuario, onEditar, edicaoBloqueada, onSessaoExpirada,
+    pdi, nomeUsuario, onEditar, edicaoBloqueada, onSessaoExpirada, onSubmetido, onAtualizar,
 }: {
     pdi: PdiRascunhoResponse;
     nomeUsuario: string;
     onEditar: (id: number) => void;
     edicaoBloqueada: boolean;
     onSessaoExpirada: () => void;
+    onSubmetido: (pdi: PdiSubmetidoResponse) => void;
+    onAtualizar: () => void;
 }) {
     const [aberto, setAberto] = useState(false);
+    const [acoesOcupadas, setAcoesOcupadas] = useState(false);
+    const [submissaoAberta, setSubmissaoAberta] = useState(false);
+    const operacaoBloqueada = edicaoBloqueada || acoesOcupadas || submissaoAberta;
     const iniciais = nomeUsuario.trim().split(/\s+/)
         .map((parte) => parte.charAt(0)).join('').slice(0, 2).toUpperCase();
     const titulo = pdi.titulo?.trim() || 'Título não informado';
@@ -104,6 +202,7 @@ function CartaoRascunho({
                 <button
                     type="button"
                     className="pdi-real-expand"
+                    disabled={acoesOcupadas || submissaoAberta}
                     onClick={() => setAberto((value) => !value)}
                     aria-expanded={aberto}
                     aria-controls={detalhesId}
@@ -125,9 +224,14 @@ function CartaoRascunho({
                         type="button"
                         className="pdi-real-button pdi-real-button-compact"
                         onClick={() => onEditar(pdi.id)}
-                        disabled={edicaoBloqueada}
+                        disabled={operacaoBloqueada}
                         aria-label={'Editar ' + titulo}
                     >Editar</button>
+                )}
+                {podeEditarRascunho(pdi) && (
+                    <button type="button" className="pdi-real-button pdi-real-button-compact"
+                        onClick={() => { if (!operacaoBloqueada) setSubmissaoAberta(true); }}
+                        disabled={operacaoBloqueada} aria-label={'Submeter ' + titulo}>Submeter</button>
                 )}
             </div>
             <p className="pdi-real-objective">{pdi.objetivo?.trim() || 'Objetivo não informado.'}</p>
@@ -144,17 +248,20 @@ function CartaoRascunho({
                         <PdiAcoes
                             key={pdi.id + '-' + pdi.versaoId}
                             pdi={pdi}
-                            bloqueado={edicaoBloqueada}
+                            bloqueado={edicaoBloqueada || submissaoAberta}
                             onSessaoExpirada={onSessaoExpirada}
+                            onOcupadoChange={setAcoesOcupadas}
                         />
                     </div>
                 )}
             </div>
+            {submissaoAberta && <ConfirmarSubmissao pdi={pdi} onSessaoExpirada={onSessaoExpirada}
+                onSubmetido={onSubmetido} onFechar={() => { setSubmissaoAberta(false); onAtualizar(); }} />}
         </article>
     );
 }
 
-export default function PdiRascunhosReais({
+function ConsultaRascunhos({
     usuario, onSessaoExpirada,
 }: PdiRascunhosReaisProps) {
     const { theme } = useTheme();
@@ -163,13 +270,17 @@ export default function PdiRascunhosReais({
     const [editor, setEditor] = useState<EditorRascunho | null>(null);
     const [confirmacao, setConfirmacao] = useState('');
     const geracaoConsulta = useRef(0);
+    const sessaoExpiradaRef = useRef(onSessaoExpirada);
+
+    useEffect(() => {
+        sessaoExpiradaRef.current = onSessaoExpirada;
+    }, [onSessaoExpirada]);
 
     useEffect(() => {
         const controller = new AbortController();
         const atual = ++geracaoConsulta.current;
         let ativo = true;
         const vigente = () => ativo && !controller.signal.aborted && atual === geracaoConsulta.current;
-        setConsulta((anterior) => ({ tipo: 'carregando', pdis: anterior.pdis }));
 
         listarRascunhos(controller.signal)
             .then((pdis) => {
@@ -185,14 +296,14 @@ export default function PdiRascunhosReais({
                         ? error.message
                         : 'Não foi possível consultar os rascunhos. Tente novamente.',
                 }));
-                if (status === 401) onSessaoExpirada(usuario.id);
+                if (status === 401) sessaoExpiradaRef.current(usuario.id);
             });
 
         return () => {
             ativo = false;
             controller.abort();
         };
-    }, [usuario.id, atualizacao, onSessaoExpirada]);
+    }, [usuario.id, atualizacao]);
 
     function atualizar() {
         geracaoConsulta.current += 1;
@@ -210,7 +321,12 @@ export default function PdiRascunhosReais({
         setEditor({ modo: 'edicao', pdiId: id });
     }
 
-    const fecharFormulario = useCallback(() => setEditor(null), []);
+    const fecharFormulario = useCallback(() => {
+        setEditor(null);
+        geracaoConsulta.current += 1;
+        setConsulta((anterior) => ({ tipo: 'carregando', pdis: anterior.pdis }));
+        setAtualizacao((value) => value + 1);
+    }, []);
     const sessaoFormularioExpirada = useCallback(() => {
         onSessaoExpirada(usuario.id);
     }, [onSessaoExpirada, usuario.id]);
@@ -224,11 +340,23 @@ export default function PdiRascunhosReais({
             if (!anterior.pdis) return { tipo: 'carregando', pdis: null };
             const presente = anterior.pdis.some((item) => item.id === pdi.id);
             return {
-                tipo: 'sucesso',
+                tipo: 'carregando',
                 pdis: presente ? anterior.pdis.map((item) => item.id === pdi.id ? pdi : item)
                     : [pdi, ...anterior.pdis],
             };
         });
+        setAtualizacao((value) => value + 1);
+    }, []);
+
+    const aoSubmeter = useCallback((submetido: PdiSubmetidoResponse) => {
+        // Remove only the exact version whose submission the server confirmed.
+        geracaoConsulta.current += 1;
+        setConsulta((anterior) => anterior.pdis === null ? { tipo: 'carregando', pdis: null } : {
+            tipo: 'carregando',
+            pdis: anterior.pdis.filter((item) => item.id !== submetido.id || item.versaoId !== submetido.versaoId),
+        });
+        setConfirmacao('Versão ' + submetido.numero + ' submetida com sucesso. '
+            + 'Consulte as versões submetidas para acompanhar a decisão.');
         setAtualizacao((value) => value + 1);
     }, []);
 
@@ -314,12 +442,14 @@ export default function PdiRascunhosReais({
                 <div className="pdi-real-list">
                     {pdis.map((pdi) => (
                         <CartaoRascunho
-                            key={pdi.id}
+                            key={pdi.id + '-' + pdi.versaoId}
                             pdi={pdi}
                             nomeUsuario={usuario.nome}
                             onEditar={abrirEdicao}
-                            edicaoBloqueada={carregando || editor !== null || sessaoExpirada || acessoNegado}
+                            edicaoBloqueada={consulta.tipo !== 'sucesso' || editor !== null || sessaoExpirada || acessoNegado}
                             onSessaoExpirada={sessaoFormularioExpirada}
+                            onSubmetido={aoSubmeter}
+                            onAtualizar={atualizar}
                         />
                     ))}
                 </div>
@@ -335,4 +465,8 @@ export default function PdiRascunhosReais({
             )}
         </section>
     );
+}
+
+export default function PdiRascunhosReais(props: PdiRascunhosReaisProps) {
+    return <ConsultaRascunhos key={props.usuario.id} {...props} />;
 }

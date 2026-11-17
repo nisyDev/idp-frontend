@@ -1,0 +1,25 @@
+.pdi-versao-dialog {
+    width: min(920px, calc(100% - 32px));
+}
+
+.pdi-versao-metadata dd {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.pdi-versao-error {
+    margin: 0;
+    padding: 12px 16px;
+    border: 1px solid var(--pdi-real-error);
+    border-radius: 10px;
+    color: var(--pdi-real-error);
+    line-height: 1.65;
+}
+
+.pdi-versao-decisao {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 20px;
+    border-top: 1px solid var(--pdi-real-border);
+}

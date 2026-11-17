@@ -39,3 +39,35 @@ export interface PdiRascunhoResponse {
     criadoEm: string;
     versaoCriadaEm: string;
 }
+
+// Contratos G8: os nomes de número/data diferem do DTO de rascunho.
+export interface PdiSubmetidoResponse {
+    id: number;
+    versaoId: number;
+    numero: number;
+    versaoVigenteId: number | null;
+    statusExecucao: StatusExecucaoPdi;
+    statusAprovacao: StatusAprovacaoPdi;
+    titulo: string | null;
+    objetivo: string | null;
+    inicioPlanejado: string | null;
+    fimPlanejado: string | null;
+    criadoEm: string;
+    criadaVersaoEm: string;
+    submetidaEm: string | null;
+    gestorNaSubmissaoId: string | null;
+}
+
+export interface PdiVersaoResponse extends PdiSubmetidoResponse {
+    titularId: string;
+    gestorAtualId: string | null;
+    decididaEm: string | null;
+    decididoPorId: string | null;
+    justificativaDecisao: string | null;
+}
+
+export interface PdiDecisaoResponse {
+    versaoDecidida: PdiVersaoResponse;
+    novaVersaoId: number | null;
+    novoNumero: number | null;
+}

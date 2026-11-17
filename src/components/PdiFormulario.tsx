@@ -74,6 +74,7 @@ function FormularioAberto(props: PdiFormularioProps) {
     const ativoRef = useRef(false);
     const enviandoRef = useRef(false);
     const carregandoRef = useRef(pdiId !== null);
+    const versaoEditadaRef = useRef<number | null>(null);
     const gravacaoControllerRef = useRef<AbortController | null>(null);
     const callbacksRef = useRef({ onFechar, onSalvo, onSessaoExpirada });
     const [campos, setCampos] = useState<CamposFormulario>(camposVazios);
@@ -114,13 +115,13 @@ function FormularioAberto(props: PdiFormularioProps) {
         let ativo = true;
         const vigente = () => ativo && ativoRef.current && !controller.signal.aborted;
         carregandoRef.current = true;
-        setConsulta({ tipo: 'carregando' });
-        setErroEnvio(null);
+        versaoEditadaRef.current = null;
 
         buscarRascunho(pdiId, controller.signal)
             .then((pdi) => {
                 if (!vigente()) return;
                 const permiteEdicao = podeEditarRascunho(pdi);
+                versaoEditadaRef.current = pdi.versaoId;
                 setCampos({
                     titulo: pdi.titulo ?? '',
                     objetivo: pdi.objetivo ?? '',
@@ -171,6 +172,7 @@ function FormularioAberto(props: PdiFormularioProps) {
             || bloqueio === 'nao-confirmada' || bloqueio === 'sessao') return;
         carregandoRef.current = true;
         setConsulta({ tipo: 'carregando' });
+        setErroEnvio(null);
         setTentativaConsulta((value) => value + 1);
     }
 
@@ -183,6 +185,8 @@ function FormularioAberto(props: PdiFormularioProps) {
         event.preventDefault();
         if (enviandoRef.current || carregandoRef.current || !ativoRef.current
             || consulta.tipo !== 'pronta' || !editavel || bloqueio !== 'nenhum') return;
+        const versaoId = versaoEditadaRef.current;
+        if (pdiId !== null && versaoId === null) return;
 
         const dados: CriarPdiRequest = {
             titulo: valorOpcional(campos.titulo),
@@ -208,7 +212,7 @@ function FormularioAberto(props: PdiFormularioProps) {
         try {
             const resposta = pdiId === null
                 ? await criarRascunho(dados, controller.signal)
-                : await atualizarRascunho(pdiId, dados, controller.signal);
+                : await atualizarRascunho(pdiId, versaoId!, dados, controller.signal);
             if (!vigente()) return;
             pdiSalvo = resposta;
         } catch (error: unknown) {
